@@ -1,0 +1,3 @@
+close ALL
+clear
+clc

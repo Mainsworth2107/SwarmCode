@@ -63,13 +63,14 @@ env.objectColors = colours;
 env.objectMarkers = objstr;
 
 
-%% Initalises robot positions
-poses = 4*(rand(3,numRobots).*[1;1;pi] - [0.5;0.5;0]) + [9;9;0];
-%poses = 4*(rand(3,1).*[1;1;pi] - [0.5;0.5;0]) + [9;9;0];
+%% Initalises robots
+robots = cell(numRobots);
 
-%poses = [4,7;6,6;pi/2,pi/2];
-%poses = [4,7;6,6;0,0];
-%poses = [7;7;0];
+for i = 1:numRobots
+    robots{i} = robot(4*(rand(3,1).*[1;1;pi] - [0.5;0.5;0]) + [9;9;0], i);
+end
+%%
+poses = extPoses(robots);
 env.Poses =  poses;
 dTheta = pi/64;
 ranges = cell(1,numRobots);
@@ -100,44 +101,35 @@ for idx = 1:128 %Equiv to a single 360 turn (at turn margin 1 / 64)
         disp([newline,newline]);
     end
     
-    %Loop that each robot runs
+    % Loop that each robot runs
     for j = 1:numRobots
-        %Gets detections from position (so not actually the robot)
-        detections = detector(poses(:,j),objects);
-        %records a detection
+        detections = detector(robots{j}.pose,objects);
         if ~isempty(detections)
             its = size(detections);
             %Looks at all currently detected objects
             
-            %Just doing R1 RN
             
             for k = 1:its(1)
                 currentObj = detections(k,3); % Current object label
-                tmp = size(detected);
+                tmp = size(robots{j}.detObjs);
                 pos = tmp(1) + 1;
-                if(tmp(1) < j)
-                    detected(j,1,:) = detections(k,:);
-                    detected(j,1,2) = detected(j,1,2) + poses(3,j);
+                if(tmp(1) < 1)
+                    robots{j}.detObjs(1,:) = detections(k,:);
+                    robots{j}.detObjs(1,2) = detections(k,2) + poses(3,j);
                 else
-                    if ~isIn(currentObj,detected(j,:,3))
-                        detected(j,pos,:) = detections(k,:);
-                        detected(j,pos,2) = detected(j,pos,2) ...
+                    if ~isIn(currentObj, robots{j}.detObjs(:,3))
+                        robots{j}.detObjs(pos,:) = detections(k,:);
+                        robots{j}.detObjs(pos,2) = detections(k,2) ...
                             + poses(3,j);
                     end
                 end
-%                 %If first encounter
-%                 if(detected(currentObj,1) < 0)
-%                     %Saves distance and angle(normalised)
-%                     detected(currentObj,:) = detections(k,:);
-%                     detected(currentObj,2) = detected(currentObj,2) + poses(3,j);
-%                 end
             end
             
             
             %Turns the robots (note: this means that the inital pose is not
             %shown)
         end
-         
+        
         %Prints every tenth iteration
         if mod(idx,10) == 0
             disp(['Robot', num2str(j)]);
@@ -153,17 +145,20 @@ for idx = 1:128 %Equiv to a single 360 turn (at turn margin 1 / 64)
         end 
         
         %Turns the robots
-        poses(3,j) = poses(3,j) + dTheta; %Index is the robot number 3 is the angle
+        robots{j}.pose(3) = robots{j}.pose(3) + dTheta; %Index is the robot number 3 is the angle
         %Wraps the angle to always be in the range -pi -> pi 
-        if abs(poses(3,j)) > (2 * pi)
-            poses(3,j) = poses(3,j) - (2 * pi * (poses(3,j) / abs(poses(3,j))));
+        if abs(robots{j}.pose(3)) > (2 * pi)
+            robots{j}.fixPose();
         end  
-        
-        %waitfor(r); % Delays next loop (remove to speed up but make output less readable)   
+
     end
+        
+
+    
     
     %% Update the environment and poses after control loop
     % Updates plot
+    poses = extPoses(robots);
     env(1:numRobots, poses, objects);
     xlim([0 16]);   % Without this, axis resizing can slow things down
     ylim([0 16]); 
@@ -189,22 +184,20 @@ vel = zeros(3, numRobots);
 goal = zeros(3, numRobots);
 %% Turning towards an object
 for i = 1:numRobots
-    min = [-1,0,0]; %Furthest detected obj       
-    for j = 1:length(detected(i,:,1))
-        if (detected(i,j,1) > 0) && (detected(i,j,1) > min(1))
-            %The normal : notation spits out an inconvient 3x1x1 matrix
-            %here
-            min = [detected(i,j,1),detected(i,j,2),detected(i,j,3)];
+    if ~isempty(robots{i}.detObjs)
+        min = [-1,0,0]; %Furthest detected obj       
+        for j = 1:length(robots{i}.detObjs(:,1)) 
+            if (robots{i}.detObjs(j,1) > 0) && (robots{i}.detObjs(j,1) > min(1))
+                min = robots{i}.detObjs(j,:);
+            end
         end
+        robots{i}.pose(3) = min(2);
+        poses = extPoses(robots);
+        env(1:numRobots, poses, objects);
+        % This is used in the movemnt section, saves loop definition
+        robots{i}.goal = objects(min(3),1:2); 
+        robots{i}.vel = bodyToWorld([0.5;0;0],robots{i}.pose);
     end
-    
-    poses(3,i) = min(2);
-   
-    env(1:numRobots, poses, objects);
-    % This is used in the movemnt section, saves loop definition
-    
-    goal(1:2,i) = objects(min(3),1:2); 
-    vel(:,i) = bodyToWorld([0.5;0;0],poses(:,i));
 end
  
 %% Moving to an object
@@ -213,17 +206,20 @@ moved = 1;
 its = 0;
 while(moved)
     moved = 0;
-    for i = 1:numRobots    
-        if distEu(poses(1:2,i),goal(1:2,i)) > 0.05
-            poses(:,i) = poses(:,i) + vel(:,i)*0.05;
-            if(mod(its,3) == 0)
-                env(1:numRobots, poses, objects);
+    for i = 1:numRobots
+        if ~isempty(robots{i}.detObjs)
+            if distEu(robots{i}.pose(1:2),robots{i}.goal) > 0.05
+                robots{i}.pose = robots{i}.pose + robots{i}.vel*0.05;
+                if(mod(its,3) == 0)
+                    poses = extPoses(robots);
+                    env(1:numRobots, poses, objects);
+                end
+                moved = 1;
             end
-            moved = 1;
-        end
-        its = its + 1;
-        if(its > 10000)
-            break
+            its = its + 1;
+            if(its > 10000)
+                break
+            end
         end
     end
 end

@@ -1,7 +1,6 @@
 %% Swarm robotics hello world.
 %Uses The MathWorks, Inc. As a baseline.
-% Renderint the env is slow. Fewr renderings drastically increase speed
-
+% Rendering the env is slow. Fewer renderings drastically increase speed
 flush
 %% Create a multi-robot environment
 
@@ -16,15 +15,13 @@ env.robotRadius = 0.25; %Determines robot chunkiness
 % angle needed for each robot
 detector = ObjectDetector;
 detector.fieldOfView = pi/4;
-attachObjectDetector(env,1,detector);
+%attachObjectDetector(env,1,detector);
 
-sampleTime = 0.001; %Sample time (LIMTIS SIMULATION SPEED)
-%r = rateControl(1/sampleTime); %Sample wait period
 %r = 0.01;
-r = 0;
+
 %% Adding Objects to environment
 mins = [0,0];
-maxes = [12,12];
+maxes = [6,6];
 
 objs = 10; %Number of objects
 steps = 25; %Placement precisions (on both axes, so sqare for total pos num)
@@ -58,16 +55,20 @@ for i = 1:objs
 end
 %sets the necessary flags in the evrinment class to reflect the object
 %definitions
+save('objs.mat','objects');
 env.hasObjects = 1;
 env.objectColors = colours;
 env.objectMarkers = objstr;
 
+detector = ObjectDetector;
+detector.fieldOfView = pi/4;
 
 %% Initalises robots
 robots = cell(numRobots);
 
 for i = 1:numRobots
-    robots{i} = robot(4*(rand(3,1).*[1;1;pi] - [0.5;0.5;0]) + [9;9;0], i);
+    robots{i} = robot(4*(rand(3,1).*[1;1;pi] - [0.5;0.5;0]) + [3;3;0], i);
+    robots{i}.state = 0;
 end
 %%
 poses = extPoses(robots);
@@ -81,8 +82,8 @@ ranges = cell(1,numRobots);
 
 %Initalising main envrionment visu
 env(1:numRobots, poses, objects);
-xlim([0 16]);   
-ylim([0 16]); 
+xlim([0 8]);   % Without this, axis resizing can slow things down
+ylim([0 8]);  
 
 % Sets ojbect labels
 for i = 1:objs
@@ -90,136 +91,101 @@ for i = 1:objs
 end
 
 %% Running the simulation
-for idx = 1:128 %Equiv to a single 360 turn (at turn margin 1 / 64)
+%its 1 - 128 are the turn, it 129 initalises the turn
+for idx = 1:129 %Equiv to a single 360 turn (at turn margin 1 / 64)
     % Get the current time step's ranges
     %scans = lidar();
     %ranges{lidar.robotIdx} = scans;
-    
-    %Prints a label for each shown iteration
-    if mod(idx,10) == 0
-        disp(['Iteration', num2str(idx)]);
-        disp([newline,newline]);
-    end
-    
+       
     % Loop that each robot runs
     for j = 1:numRobots
+        %Called in main to allow singular detector definiton (more
+        %efficent)
         detections = detector(robots{j}.pose,objects);
-        if ~isempty(detections)
-            its = size(detections);
-            %Looks at all currently detected objects
-            
-            
-            for k = 1:its(1)
-                currentObj = detections(k,3); % Current object label
-                tmp = size(robots{j}.detObjs);
-                pos = tmp(1) + 1;
-                if(tmp(1) < 1)
-                    robots{j}.detObjs(1,:) = detections(k,:);
-                    robots{j}.detObjs(1,2) = detections(k,2) + poses(3,j);
-                else
-                    if ~isIn(currentObj, robots{j}.detObjs(:,3))
-                        robots{j}.detObjs(pos,:) = detections(k,:);
-                        robots{j}.detObjs(pos,2) = detections(k,2) ...
-                            + poses(3,j);
-                    end
-                end
-            end
-            
-            
-            %Turns the robots (note: this means that the inital pose is not
-            %shown)
-        end
-        
-        %Prints every tenth iteration
-        if mod(idx,10) == 0
-            disp(['Robot', num2str(j)]);
-            if ~isempty(detections)
-                nearestLabel = detections(1,3);
-                range = detections(1,1);
-                disp(['Nearest object is of label [', num2str(nearestLabel), ']']); 
-                disp(['Distance of object: ' num2str(range)]);
-                %disp(['Detections :', mat2str(detections)])
-            else
-                disp('No objects detected'); 
-            end
-        end 
-        
-        %Turns the robots
-        robots{j}.pose(3) = robots{j}.pose(3) + dTheta; %Index is the robot number 3 is the angle
-        %Wraps the angle to always be in the range -pi -> pi 
-        if abs(robots{j}.pose(3)) > (2 * pi)
-            robots{j}.fixPose();
-        end  
-
-    end
-        
-
+        %Calling the main robot loop
+        robots{j}.cycle(idx,detections);
+    end    
     
-    
-    %% Update the environment and poses after control loop
-    % Updates plot
+    % Update the environment and poses after control loop
     poses = extPoses(robots);
     env(1:numRobots, poses, objects);
-    xlim([0 16]);   % Without this, axis resizing can slow things down
-    ylim([0 16]); 
-    % Breakpoint statement for testing
-    if(mod(idx, 10) == 0)
-        %waitfor(0.01) %Breakpoint setting line
-    end
-    %waitfor(r); % Delays next loop (remove to speed up but make output less readable)
+    xlim([0 8]);   % Without this, axis resizing can slow things down
+    ylim([0 8]); 
 end
-
-
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Delay between 'search' and 'react' phases for more obvious event flow
 disp('Ready to move?')
 waitforbuttonpress
-%%
-%Pos values: 1: desx, 2:desy, 3: destheta
-%Stores the vector values that correspond to the direstion of the nearest
-%object
-vel = zeros(3, numRobots);
-%stores the coords of the nerest object
-goal = zeros(3, numRobots);
-%% Turning towards an object
-for i = 1:numRobots
-    if ~isempty(robots{i}.detObjs)
-        min = [-1,0,0]; %Furthest detected obj       
-        for j = 1:length(robots{i}.detObjs(:,1)) 
-            if (robots{i}.detObjs(j,1) > 0) && (robots{i}.detObjs(j,1) > min(1))
-                min = robots{i}.detObjs(j,:);
-            end
-        end
-        robots{i}.pose(3) = min(2);
-        poses = extPoses(robots);
-        env(1:numRobots, poses, objects);
-        % This is used in the movemnt section, saves loop definition
-        robots{i}.goal = objects(min(3),1:2); 
-        robots{i}.vel = bodyToWorld([0.5;0;0],robots{i}.pose);
-    end
-end
- 
-%% Moving to an object
 
+%% Moving to an object
 moved = 1;
 its = 0;
+tmp = 1;
+action = zeros(1,numRobots);
+
+% toPlot = [];
+
+%%
+step = 1.6;
+moved = 1;
 while(moved)
     moved = 0;
     for i = 1:numRobots
         if ~isempty(robots{i}.detObjs)
-            if distEu(robots{i}.pose(1:2),robots{i}.goal) > 0.05
-                robots{i}.pose = robots{i}.pose + robots{i}.vel*0.05;
-                if(mod(its,3) == 0)
-                    poses = extPoses(robots);
-                    env(1:numRobots, poses, objects);
-                end
-                moved = 1;
-            end
-            its = its + 1;
-            if(its > 10000)
-                break
-            end
+            switch(action(i))
+                case 0             
+        %             if i == 1
+        %                 toPlot(1,tmp) = tmp;
+        %                 toPlot(2,tmp) = (distEu(robots{i}.pose(3),robots{i}.goal(3)) > 0.05);
+        %                 tmp = tmp + 1;
+        %             end
+                    tmp = (robots{i}.goal(3) - robots{i}.pose(3));
+                    if(abs(tmp) > pi)
+                        tmp = tmp + (2*pi*(tmp / abs(tmp)));                        
+                    end
+                    
+                    %tmp = fixPose(tmp + pi) - pi;
+                    if(abs(tmp) > (deg2rad(step)))
+                        robots{i}.pose(3) = fixPose(robots{i}.pose(3) + ...
+                            (deg2rad(step) * (tmp / abs(tmp)))  );     
+                    else
+                        robots{i}.pose(3) = robots{i}.goal(3);
+                        robots{i}.vel = bodyToWorld([0.5;0;0],robots{i}.pose);
+                        action(i) = 1;
+                    end
+                    
+                case 1                     
+                    if distEu(robots{i}.pose(1:2)',robots{i}.goal(1:2)) > 0.05
+                        robots{i}.pose(1:2) = robots{i}.pose(1:2) + robots{i}.vel(1:2)*0.02; 
+                    else
+                        action(i) = 2;
+                    end 
+%                     if (mod(its,10) == 0)
+%                        waitfor(0.01)
+%                     end
+            end   
+        else
+            action(i) = 2;
         end
     end
+    
+    for i = 1:numRobots
+        if ~(action(i)  == 2)
+            moved = 1;
+        end
+    end
+    %Renders robots every third iteratiom
+    its = its + 1;
+    if(its > 10000)
+        break
+    end
+    if(mod(its,3) == 0)
+        poses = extPoses(robots);
+        env(1:numRobots, poses, objects);
+    end  
+    pause(0.015)
 end
+% 
+% figure(2);
+% plot(toPlot(1,:),toPlot(2,:));

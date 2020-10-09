@@ -1,8 +1,9 @@
 function [X] = distEu (A,B)
     sum = 0;
-    for i = 1:size(A)
-        sum = sum + sqrt((B(i) - A(i))^2);
+    for i = 1:length(A)
+        sum = sum + (B(i) - A(i))^2;
     end
+    sum = sqrt(sum);
     X = sum;
     return
 end

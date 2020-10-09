@@ -10,14 +10,15 @@ env = MultiRobotEnv(numRobots); %Initalises robot envrionment
 env.showTrajectory = false; %Disables live pathing
 env.robotRadius = 0.25; %Determines robot chunkiness
 
+limX = [0 8];
+limY = [0 8];
+
 %% Adding Object Detector
 % Cleverly, only one OD is needed, it is simmply moved to the exact pos /
 % angle needed for each robot
 detector = ObjectDetector;
 detector.fieldOfView = pi/4;
 %attachObjectDetector(env,1,detector);
-
-%r = 0.01;
 
 %% Adding Objects to environment
 mins = [0,0];
@@ -55,7 +56,7 @@ for i = 1:objs
 end
 %sets the necessary flags in the evrinment class to reflect the object
 %definitions
-save('objs.mat','objects');
+%save('objs.mat','objects');
 env.hasObjects = 1;
 env.objectColors = colours;
 env.objectMarkers = objstr;
@@ -82,8 +83,8 @@ ranges = cell(1,numRobots);
 poses = extPoses(robots);
 env.Poses =  poses;
 env(1:numRobots, poses, objects);
-xlim([0 8]);   % Without this, axis resizing can slow things down
-ylim([0 8]);  
+xlim(limX);   % Without this, axis resizing can slow things down
+ylim(limY);  
 
 % Sets ojbect labels
 for i = 1:objs
@@ -127,8 +128,8 @@ while(moved)
     if(mod(its,3) == 0)
         poses = extPoses(robots);
         env(1:numRobots, poses, objects);
-        xlim([0 8]);   % Without this, axis resizing can slow things down
-        ylim([0 8]); 
+        xlim(limX);   % Without this, axis resizing can slow things down
+        ylim(limY); 
     end
     pause(0.015)
 end

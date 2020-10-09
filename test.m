@@ -70,9 +70,7 @@ for i = 1:numRobots
     robots{i} = robot(4*(rand(3,1).*[1;1;pi] - [0.5;0.5;0]) + [3;3;0], i);
     robots{i}.state = 0;
 end
-%%
-poses = extPoses(robots);
-env.Poses =  poses;
+
 dTheta = pi/64;
 ranges = cell(1,numRobots);
 
@@ -81,6 +79,8 @@ ranges = cell(1,numRobots);
 %% Setting up the visulisation
 
 %Initalising main envrionment visu
+poses = extPoses(robots);
+env.Poses =  poses;
 env(1:numRobots, poses, objects);
 xlim([0 8]);   % Without this, axis resizing can slow things down
 ylim([0 8]);  
@@ -92,9 +92,9 @@ end
 
 %% Running the simulation
 %its 1 - 128 are the turn, it 129 initalises the turn its 129 + are moving
-its = 1;
+its = 1; %total iteration count
 %step = 1.6;
-moved = 1;
+moved = 1; %end state recognition
 while(moved)
     moved = 0;
     % Get the current time step's ranges
@@ -117,6 +117,9 @@ while(moved)
     end
     
     its = its + 1;
+    if(its == 128)
+        waitforbuttonpress();
+    end
     if(its > 10000)
         break
     end

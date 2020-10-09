@@ -38,7 +38,7 @@ classdef robot < handle
                 case 1
                     %Intermittent state that sets goal params
                     obj.prepHoming();
-                    obj.state = 2;
+                    
                 case 2          
                     obj.turning();
                 case 3
@@ -65,26 +65,29 @@ classdef robot < handle
                     end
                 end
                 obj.minT = min;
-                
+
                 obj.goal = ...
                 [obj.pose(1) + (  min(1)*cos(min(2)) ), ...
                  obj.pose(2) + (  min(1)*sin(min(2)) ), ...
                  fixPose(min(2)), min(3)];
-             
+
+                obj.pose(3) = fixPose(obj.pose(3));
+
+                obj.state = 2;
                 
             else %Defaults to resting if nothing seen
-                obj.state = 4;
-                
+                obj.state = 4;               
             end
         end
         
         function obj = turning(obj)
             step = 1.6;
             tmp = (obj.goal(3) - obj.pose(3));
+            
             if(abs(tmp) > pi)
-                tmp = tmp + (2*pi*(tmp / abs(tmp)));                        
+                tmp = tmp - (2*pi*(tmp / abs(tmp)));                        
             end
-
+            
             %tmp = fixPose(tmp + pi) - pi;
             if(abs(tmp) > (deg2rad(step)))
                 obj.pose(3) = fixPose(obj.pose(3) + ...

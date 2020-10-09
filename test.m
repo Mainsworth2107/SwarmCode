@@ -91,101 +91,41 @@ for i = 1:objs
 end
 
 %% Running the simulation
-%its 1 - 128 are the turn, it 129 initalises the turn
-for idx = 1:129 %Equiv to a single 360 turn (at turn margin 1 / 64)
+%its 1 - 128 are the turn, it 129 initalises the turn its 129 + are moving
+its = 1;
+%step = 1.6;
+moved = 1;
+while(moved)
+    moved = 0;
     % Get the current time step's ranges
     %scans = lidar();
     %ranges{lidar.robotIdx} = scans;
        
     % Loop that each robot runs
-    for j = 1:numRobots
+    for i = 1:numRobots
         %Called in main to allow singular detector definiton (more
         %efficent)
-        detections = detector(robots{j}.pose,objects);
+        detections = detector(robots{i}.pose,objects);
         %Calling the main robot loop
-        robots{j}.cycle(idx,detections);
+        robots{i}.cycle(its,detections);
     end    
     
-    % Update the environment and poses after control loop
-    poses = extPoses(robots);
-    env(1:numRobots, poses, objects);
-    xlim([0 8]);   % Without this, axis resizing can slow things down
-    ylim([0 8]); 
-end
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Delay between 'search' and 'react' phases for more obvious event flow
-disp('Ready to move?')
-waitforbuttonpress
-
-%% Moving to an object
-moved = 1;
-its = 0;
-tmp = 1;
-action = zeros(1,numRobots);
-
-% toPlot = [];
-
-%%
-step = 1.6;
-moved = 1;
-while(moved)
-    moved = 0;
     for i = 1:numRobots
-        if ~isempty(robots{i}.detObjs)
-            switch(action(i))
-                case 0             
-        %             if i == 1
-        %                 toPlot(1,tmp) = tmp;
-        %                 toPlot(2,tmp) = (distEu(robots{i}.pose(3),robots{i}.goal(3)) > 0.05);
-        %                 tmp = tmp + 1;
-        %             end
-                    tmp = (robots{i}.goal(3) - robots{i}.pose(3));
-                    if(abs(tmp) > pi)
-                        tmp = tmp + (2*pi*(tmp / abs(tmp)));                        
-                    end
-                    
-                    %tmp = fixPose(tmp + pi) - pi;
-                    if(abs(tmp) > (deg2rad(step)))
-                        robots{i}.pose(3) = fixPose(robots{i}.pose(3) + ...
-                            (deg2rad(step) * (tmp / abs(tmp)))  );     
-                    else
-                        robots{i}.pose(3) = robots{i}.goal(3);
-                        robots{i}.vel = bodyToWorld([0.5;0;0],robots{i}.pose);
-                        action(i) = 1;
-                    end
-                    
-                case 1                     
-                    if distEu(robots{i}.pose(1:2)',robots{i}.goal(1:2)) > 0.05
-                        robots{i}.pose(1:2) = robots{i}.pose(1:2) + robots{i}.vel(1:2)*0.02; 
-                    else
-                        action(i) = 2;
-                    end 
-%                     if (mod(its,10) == 0)
-%                        waitfor(0.01)
-%                     end
-            end   
-        else
-            action(i) = 2;
-        end
-    end
-    
-    for i = 1:numRobots
-        if ~(action(i)  == 2)
+        if ~(robots{i}.state  == 4) % if resting
             moved = 1;
         end
     end
-    %Renders robots every third iteratiom
+    
     its = its + 1;
     if(its > 10000)
         break
     end
+    % Update the environment and poses after control loop
     if(mod(its,3) == 0)
         poses = extPoses(robots);
         env(1:numRobots, poses, objects);
-    end  
+        xlim([0 8]);   % Without this, axis resizing can slow things down
+        ylim([0 8]); 
+    end
     pause(0.015)
 end
-% 
-% figure(2);
-% plot(toPlot(1,:),toPlot(2,:));

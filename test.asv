@@ -10,7 +10,7 @@ env = MultiRobotEnv(numRobots); %Initalises robot envrionment
 env.showTrajectory = false; %Disables live pathing
 env.robotRadius = 0.25; %Determines robot chunkiness
 
-limX = [0 8]; % 8
+limX = [0 8];
 limY = [0 8];
 
 A = zeros(1,numRobots); %Allocation
@@ -47,7 +47,6 @@ colours = objects;
 %Stores the detection data of an object.
 detected = [[],[]];
 preset = [5,5;5,1;6,2;7.5,5];
-
 objstr = 'o';
 for i = 1:objs
    objects(i,3) = i;
@@ -157,25 +156,37 @@ while(moved)
     pause(0.015)
 end
 %% Allocation
-
-% Runs the allocation (called on it 129)
-while(its < 131)
-    others = robots;
+while(its < 135)
     for i = 1:numRobots
+        others = robots;
         robots{i}.cycle(its,[]);
     end
     its = its +1;
 end
 %%
-% clc
-% % Random allocation sist, start f=thinking of comms here
-% others = robots;
-% for i = 1:numRobots
-%     %A(i) = robots{i}.A;
-%     robots{i}.setVars();
-%     [robots{i}.A, getFit(floor(robots{i}.A))]
+%Initalisation 
+for i = 1:numRobots
+    A(i) = robots{i}.A;
+end
+
+% its = 0;
+% while(its < 500)
+%     
 % end
-%A;
+
+A
+
+%%
+for i = 1:numRobots
+    robots{i}.detObjs
+end
+
+%%
+% Initlising global robots list
+% toTest = 1;
+% tmp = cell(1);
+
+
 %%
 %Limited range comms
 % others = tmp;

@@ -34,7 +34,7 @@ classdef robot < handle
         
         % Gets all known objects (comms example / basis)
         function getObjs(obj) 
-            global others;
+            global others
             
             tmp = cell(1);
             j = 0;
@@ -79,11 +79,8 @@ classdef robot < handle
         
         %Sets all inital values for allocation
         function setVars(obj)
-            global others
-            obj.getObjs();
-            %Allocation is real but interpreted as 
-            % initlise PB here
-            obj.A =  rand(1,(length(others))) * (length(obj.knownObjs)) + 1; 
+            %Allocation is real but interpreted as natural
+            obj.A = rand(1,(length(others)))*length(obj.knownObjs) + 1; 
             obj.AGbest = floor(obj.A);
         end
         
@@ -120,7 +117,7 @@ classdef robot < handle
                     obj = searching(obj,its,detections);
                     
                 case 1 %Intermittent state that sets goal params                  
-                    greedyA(obj);
+                    obj.Allocate();
                     
                 case 2 %Turning to goal
                     line([obj.pose(1),obj.goal(1)]...
@@ -141,10 +138,46 @@ classdef robot < handle
             % State 0 and 1 are concurrent (non varient behaviour)
             if(its == 128)
                 obj.state = 1;
-                obj.setVars();
             end
         end
-          
+        
+        %% Task Allocation
+        function obj = Allocate(obj)
+            obj.getObjs();
+            if ~isempty(obj.knownObjs)
+                %min = [-1,0,0]; %Furthest detected obj  
+                
+                % Min represents the final allocation
+                min = obj.greedyA();
+                obj.minT = min;
+
+                obj.goal = ...
+                [obj.pose(1) + (  min(1)*cos(min(2)) ), ...
+                 obj.pose(2) + (  min(1)*sin(min(2)) ), ...
+                 fixPose(min(2)), min(3)];
+
+                obj.pose(3) = fixPose(obj.pose(3));
+                
+                obj.A = min(3);
+                obj.state = 2;
+                
+            else %Defaults to resting if nothing seen
+                obj.A = 0;
+                obj.state = 4;               
+            end
+        end
+        
+        function X = greedyA(obj)
+            min = [20,0,0];
+            
+            for j = 1:length(obj.knownObjs(:,1)) 
+                if (obj.knownObjs(j,1) > 0) && (obj.knownObjs(j,1) < min(1))
+                    min = obj.knownObjs(j,:);
+                end
+            end
+            X = min;
+            
+        end
         
         function obj = turning(obj)
             step = 1.6; % turning speed (deg / cycle)

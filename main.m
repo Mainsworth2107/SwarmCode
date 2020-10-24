@@ -1,9 +1,10 @@
-%% Swarm robotics hello world.
-%Uses The MathWorks, Inc. As a baseline.
-% Rendering the env is slow. Fewer renderings drastically increase speed
-flush
-%% Create a multi-robot environment
+%% Distributed bees aglrotihm
+%% Based on:
+%% Uses The Mobile Simulation Toolbox from: The MathWorks, Inc.
 
+
+%% Create a multi-robot environment
+flush
 numRobots = 10; %Self explanitary
 
 env = MultiRobotEnv(numRobots); %Initalises robot envrionment
@@ -14,19 +15,22 @@ limX = [-14 14]; % 8
 limY = [-10, 10];
 
 A = zeros(1,numRobots); %Allocation
-%% Adding Objects to environment
-%objs = 10; %Number of objects
+
+%% Initalising Objects
 
 %setup 1
 % objs = 2;
 % qualities = [0.5,0.5];
 
-objs = 2;
+%setup 2
+% objs = 2;
+% qualities = 0.25*ones(1,4);
+
+%setup 3
+% objs = 2;
 % qualities = [0.1,0.2,0.3,0.4];
-qualities = [0.5 0.5];
-%qualities = [100,250,300,150]; %(16) robots (2, 5, 6 ,3)
 
-
+%% Adding Objects to environment
 objects = zeros(objs,3);
 colours = objects;
 
@@ -50,10 +54,9 @@ for i = 1:objs
     colours(i,2:3) = 0;
 end
 
+%Initalises global objects reference
 global allObjs;
 allObjs = [objects,(qualities')];
-
-%save('objs.mat','objects');
 
 env.hasObjects = 1;
 env.objectColors = colours;
@@ -62,26 +65,13 @@ env.objectMarkers = objstr;
 % Hides robot IDs
 env.showRobotIds = false;
 
-%% Initalises robots
+%% Initalises robots and arena
 robots = cell(numRobots,1);
-
-% preset = [1.5,1;4,2;3.5,4;6,4];
-%%
-%rad = 4;
-% Whole Arena
-diffX = 21.25;
-diffY = 15;
-
-% Out to the objects
-% diffX = 15;
-% diffY = 9;
-
 robots = initBots(robots,objs,diffX,diffY);
 
-dTheta = pi/64;
-ranges = cell(1,numRobots);
-
-%angles = linspace(-pi,pi,100);
+% Arena dimensions
+diffX = 21.25;
+diffY = 15;
 
 %% Setting up the visulisation
 
@@ -97,7 +87,7 @@ for i = 1:objs
     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
 end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Running the algortihm
 runs = 50;
 mae = zeros(1,runs);
 dists = mae;
@@ -119,13 +109,9 @@ for i = 1:runs
     end
     counts = counts ./ (sum(counts));
     mae(i) = (1/objs) * sum(abs(qualities - counts)); 
-    mum(i) = mae(i);
-    if counts(1) < counts(2)
-        mum(i) = mum(i)*-1;
-    end
     robots = initBots(robots,objs,diffX,diffY);
 end
-%%
+%% Producing an example visulisation
 
 sample = A(ceil(rand*height(A)),:);
 poses = extPoses(robots);
@@ -167,13 +153,13 @@ maxE = max(mae);
 avgE = mean(mae);
 visE = abs(visE(1)-visE(2))/2;
 
-%%
+%% Output of results
 format short
 disp('   AvgE(%)   MaxE(%)   Avg Dist');
 % disp('    AvgE      MaxE');
 disp([100*avgE 100*maxE (mean(dists)/10)]);
 
 out = [floor(A),mae',dists'];
-%%
+%% Writing results to csv for validation
 writematrix((out),'Test.csv');
 

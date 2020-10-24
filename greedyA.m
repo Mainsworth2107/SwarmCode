@@ -1,6 +1,7 @@
 %% Task Allocation
 function obj = greedyA(obj)
     %obj.getObjs();
+    obj.knownObjs = obj.detObjs;
     if ~isempty(obj.knownObjs)
         %min = [-1,0,0]; %Furthest detected obj  
         %% Greedy Allocation being run

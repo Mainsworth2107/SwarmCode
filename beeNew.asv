@@ -1,0 +1,72 @@
+function sol = beeNew(A,i,neighbour)
+    test = A(i,:);
+    global allObjs;
+    objs = height(allObjs);
+    
+    P = A(i,:);
+    Q = A(neighbour,:);
+    
+    Equal = find(P==Q);
+    %% Moving to neigbour
+    % Can move towards (1) or away (0)
+    if( 2 < len(Equal) )&& ( len(Equal) < (len(P) - 2) ) 
+        action = round(rand);
+    else
+        % All differnt
+        if(2<len(Equal))
+            action = 1;
+        else %All Equal
+            action = 0;
+        end
+    end
+    
+    if(action == 1)
+        R = find(~(P==Q)); % Swap two differnt points to move towards
+    else
+        R = find(P==Q); % Swap two same points to move away
+    end
+    
+    idxs = floor(rand(1,2)*length(R))+1;
+    cut = 0;
+
+    while P(R(idxs(1))) == P(R(idxs(2)))
+       idxs(2) = floor(rand*length(R))+1;
+       cut = cut + 1;
+       %Statement for saftey only
+       if(cut > 100)
+           break;
+       end
+    end
+
+    if(cut < 100)
+        [P(R(idxs(1))),P(R(idxs(2)))];
+
+        tmp = P(R(idxs(2)));
+        A(i, (R(idxs(2))) ) = P(R(idxs(1)));
+        A(i, (R(idxs(1))) ) = tmp;
+    end
+
+    
+    sol = A(i,:);
+    mutation = 0.4;
+     %1 / (size(Foods(i,:)) + 2);% %         mutation = 0.2; %1 / (size(Foods(i,:)) + 2);
+    if(rand <= mutation)
+        mutation = 0.1;
+       for i=1:len(sol)
+           if(rand < mutation)
+               sol(i) = sol(i) + round( (2*rand*(objs-1)) - 1);
+               sol = mod(sol,objs);
+               if(sol == 0)
+                   
+                   
+           end
+       end
+    end
+%     if(sol == test)
+%         1
+%     end
+    
+
+    
+
+end

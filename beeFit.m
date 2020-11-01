@@ -1,4 +1,4 @@
-function X = beeFit(FoodNumber,A,robots,qualities)
+function X = beeFit(FoodNumber,A,robots,qualities,mode)
     %Fitness calclation (for each robot)
     global allObjs
     objs = height(allObjs);
@@ -36,8 +36,16 @@ function X = beeFit(FoodNumber,A,robots,qualities)
         %mae is of greater importance than distance because it has a smaller
         %(larger inverse) order of magnitude. This is good as we don't really
         %care about distance until MAE is zero.
-
-        X(i) = (1/  ((Error + (0.001/length(robots)) ) * dist ) );
+        
+        switch(mode)
+            case 0
+                X(i) = (1/  ((Error + (0.001/length(robots)) ) * dist ) );
+            case 1
+                X(i) = Error;
+            case 2
+                X(i) = dist;
+        end
+        
 %         X(i) = (1/  (Error + (0.001/length(robots)) ));
 %           X(i) = 1/dist;
 %          X(i) = (1/ ((Error) * dist)); %Produces infs

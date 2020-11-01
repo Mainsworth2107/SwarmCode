@@ -5,6 +5,7 @@
 
 %% Create a multi-robot environment
 flush
+runs = 10;
 numRobots = 40; %Self explanitary
 % Coeff = 2; %Looping coefficent (Approriate measure)
 Coeff = 6;
@@ -103,12 +104,6 @@ for i = 1:objs
     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
 end
 
-%% Running the algortihm
-% runs = 50;
-runs = 1;
-mae = zeros(1,runs); %MAE for each run
-% dists = mae; %Sum of distances for each run
-
 
 %% Bees setup
 % Lines 1 - 25
@@ -126,13 +121,18 @@ maxCycle = Coeff*D; %Assumption that req its is directly proportianl to problem 
 ub = ones(1,D)*objs; %/*upper bounds of the parameters. */
 lb = ones(1,D);%/*lower bounds of the parameters.*/
 
-GlobalMaxes = zeros(1,runs);
+%Store the best variables per cycle
+GlobalMaxes = zeros(runs,D);
+FitMaxes = zeros(1,runs);
+mae = zeros(1,runs); %MAE for each run
+allDists = mae;
 
-testing = zeros(1,objs);
+%Tracks how quickly the optimum is reached
+coeffs = zeros(1,runs);
 
-%Fitnessess of all individuals over all loops
-fitness = zeros(runs,FoodNumber);
-dists = zeros(1,runs);
+%Fitnessess and dist for each developed solution (in loop)
+fitness = zeros(1,FoodNumber);
+dists = fitness;
 
 % opt = [1,2,2,2,2,2,1,2....
 %        2,2,1,1,1,1,2,2,1,1 ...
@@ -141,22 +141,20 @@ dists = zeros(1,runs);
 
 %% Main Loop.
 for i = 1:runs
-    % Input is robots
-    
     %% ABC Algortihm
+    % Input is robots
     
     %% Initalisation
     % 10 possible solutions
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
-    % A is the solutions matrix
+    
+    % A is the solutions matrix, and is randomly initalised
     A = (rand(FoodNumber,D) .* Range) + Lower;
     A = round(A);
     
     %Calculate current fitnesses.
-    fitness = beeFit(FoodNumber,A,robots,qualities);
-    
-    trial=zeros(1,FoodNumber); %reset trial counters
+    fitness = beeFit(FoodNumber,A,robots,qualities,0);
 
     %Finds all the indviduals with the best value
     BestInd= find( fitness == max(fitness) );
@@ -167,17 +165,21 @@ for i = 1:runs
     GlobalMax = fitness(BestInd);
     GlobalParams = A(BestInd,:);
     
+    %Resets trail array
+    trial=zeros(1,FoodNumber); %reset trial counters
+    
     %% Big Loop
     iter=1;
-    sampleFits = zeros(numRobots,FoodNumber);
+    sampleFits = zeros(numRobots,FoodNumber); %Testing variable
     
     
     while ((iter <= maxCycle))
         %% Employed Bee Phase
         for j=1:(FoodNumber) % Exactly [solutions] runs completed
             
+%             tmp = A(j,:); % Testing value
+            
             % Determines a shiifted solution
-            tmp = A(j,:); % Testing value
             sol = shiftSol(A,FoodNumber,j);
 %             length(find(~(tmp==sol)))
             
@@ -185,15 +187,16 @@ for i = 1:runs
             [fitness(j),trial(j)] = ...
                 updateSol(sol,fitness(j),trial(j),robots,qualities);
             
-            if trial(j) == 0
+            if trial(j) == 0 %Uses the fact that trials reset when a better solution is found
                 A(j,:) = sol;
             end
         end
         
+        %Solutions have p in range 0.1 to 1
         prob=(0.9.*fitness./max(fitness))+0.1;
              
         %% Onlooker Bee Phase
-        j = 1;
+        j = 1; %Looping variable
         t=0;
         while(t<FoodNumber)
             if(rand<prob(j))
@@ -223,14 +226,8 @@ for i = 1:runs
          if (fitness(ind)>GlobalMax)
             GlobalMax=fitness(ind);
             GlobalParams=A(ind,:);
+            coeffs(i) = iter;
          end
-        
-%         for k = 1:objs
-%             testing(k) = length(find( GlobalParams==k ));
-%         end
-%         testing = testing + 1; %Adding static robots;
-%         testing = testing ./ (sum(testing));
-%         testing = (1/objs) * sum(abs(qualities - testing));
         
         dists(iter) = GlobalMax;%1/((testing + (1 /numRobots))*GlobalMax);
         %% Scout Bee Phase
@@ -244,7 +241,7 @@ for i = 1:runs
             sol = (rand(1,D) * Range(ind)) + Lower(ind);
             sol = round(sol);
 
-            FitnessSol=beeFit(1,sol,robots,qualities);
+            FitnessSol=beeFit(1,sol,robots,qualities,0);
             
             A(ind,:)=sol;
             fitness(ind)=FitnessSol;
@@ -257,30 +254,29 @@ for i = 1:runs
         
         iter = iter + 1;
     end
+    
+    %% End of Loop Recording
+    GlobalMaxes(i,:) = GlobalParams;
+    FitMaxes(i) = GlobalMax;
+    mae(i) = beeFit(1,GlobalParams,robots,qualities,1);
+    allDists(i) = beeFit(1,GlobalParams,robots,qualities,2);
+    if(i < (runs))
+        robots = initBots(robots,objs,diffX,diffY); %Sets a New robots array
+    end
 end
-
-figure(2)
-plot(dists)
+coeffs = coeffs ./ numRobots;
+% figure(2)
+% plot(dists)
 
 %% 
 
 
-%     %% Assess the fitness retunred by the allocation
-%     % MAE considers already allocated robotos
-%     
-%     counts = counts ./ (sum(counts));
-%     mae(i) = (1/objs) * sum(abs(qualities - counts));
-%     
-% 
-%     
-%     
-%     %Initalises next run
-%     robots = initBots(robots,objs,diffX,diffY);
-% end
+sample = [1:objs,GlobalMaxes(end,:)];
+
 
 %% Producing an example visulisation
 figure(1)
-sample = [1:objs,GlobalParams];
+% sample = [1:objs,GlobalParams];
 % sample = [1,2,opt];
 % sample = A(ceil(rand*height(A)),:);
 poses = extPoses(robots);
@@ -295,8 +291,10 @@ env(1:numRobots, poses, objects);
 
 
 %% Bar Chart
-
-tmp = histcounts([1:objs,GlobalParams],'Normalization','probability');
+% Adds fixed pos robots to results
+fixed = ones(runs,1)*(1:objs);
+% tmp = histcounts(sample,'Normalization','probability');
+tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
 tmp = tmp*100;
 visE = tmp;
 x = 1:length(tmp);
@@ -306,7 +304,7 @@ for i =1:length(tmp)
     y(i,2) = 100*(qualities(i)/ sum(qualities));
 end
 
-figure(3);
+figure(2);
 tmp = bar(x,y,0.75);
 tmp(1).FaceColor = [0 1 1];
 tmp(2).FaceColor = [0 1 0];
@@ -316,20 +314,20 @@ ylabel('Number of robots (%)');
 ylim([0 70]);
 
 legend('Location','northwest')
+%%
+figure(3)
+plot(coeffs)
+%%
+maxE = max(mae);
+avgE = mean(mae);
 
-% %% Error Max and average
-% 
-% maxE = max(mae);
-% avgE = mean(mae);
-% visE = abs(visE(1)-visE(2))/2;
-% 
-% %% Output of results
-% format short
-% disp('   AvgE(%)   MaxE(%)   Avg Dist');
-% % disp('    AvgE      MaxE');
-% disp([100*avgE 100*maxE (mean(dists)/10)]);
-% 
-% out = [floor(A),mae',dists'];
-% %% Writing results to csv for validation
-% writematrix((out),'Test.csv');
+%% Output of results
+format short
+disp('   AvgE(%)   MaxE(%)   Avg Dist');
+% disp('    AvgE      MaxE');
+disp([100*avgE 100*maxE (mean(allDists)/10)]);
+
+out = [floor(A),mae',allDists'];
+%% Writing results to csv for validation
+writematrix((out),'Test.csv');
 

@@ -5,10 +5,10 @@
 
 %% Create a multi-robot environment
 flush
-runs = 10;
-numRobots = 40; %Self explanitary
+runs = 50;
+numRobots = 100; %Self explanitary
 % Coeff = 2; %Looping coefficent (Approriate measure)
-Coeff = 6;
+Coeff = 2;
 %The looping coefficent is representative of the number of iterations
 %required to develop an optimal soultion. As such, the goal of
 %optimisiation is minimising this multiplier.
@@ -25,9 +25,9 @@ A = zeros(1,numRobots); %Allocation
 %% Initalising Objects
 
 %setup 1
-% objs = 2;
-% qualities = [0.5,0.5];
-% preset = [-4.5,7.5; 4.5,-7.5];
+objs = 2;
+qualities = [0.5,0.5];
+preset = [-4.5,7.5; 4.5,-7.5];
 
 %setup 2
 % objs = 4;
@@ -35,9 +35,9 @@ A = zeros(1,numRobots); %Allocation
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 
 % %setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 
 %% Adding Objects to environment
 objects = zeros(objs,3);
@@ -327,7 +327,7 @@ disp('   AvgE(%)   MaxE(%)   Avg Dist');
 % disp('    AvgE      MaxE');
 disp([100*avgE 100*maxE (mean(allDists)/10)]);
 
-out = [floor(A),mae',allDists'];
+out = [GlobalMaxes,mae',allDists'];
 %% Writing results to csv for validation
 writematrix((out),'Test.csv');
 

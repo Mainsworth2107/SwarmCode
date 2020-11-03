@@ -18,9 +18,9 @@ A = zeros(1,numRobots); %Allocation
 
 %% Initalising Objects
 
-%setup 1
-% objs = 2;
-% qualities = [0.5,0.5];
+% setup 1
+objs = 2;
+qualities = [0.5,0.5];
 
 %setup 2
 % objs = 2;
@@ -67,11 +67,12 @@ env.showRobotIds = false;
 
 %% Initalises robots and arena
 robots = cell(numRobots,1);
-robots = initBots(robots,objs,diffX,diffY);
 
 % Arena dimensions
 diffX = 21.25;
 diffY = 15;
+
+robots = initBots(robots,objs,diffX,diffY);
 
 %% Setting up the visulisation
 

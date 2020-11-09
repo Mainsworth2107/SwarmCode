@@ -40,6 +40,7 @@ function X = beeFit(FoodNumber,A,robots,qualities,mode)
         switch(mode)
             case 0
                 X(i) = (1/  ((Error + (0.001/length(robots)) ) * dist ) );
+%                     X(i) = (1/  ((Error +1) * dist ) );
             case 1
                 X(i) = Error;
             case 2

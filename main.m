@@ -20,14 +20,13 @@ env.showTrajectory = false; %Disables live pathing
 limX = [-14 14]; % 8
 limY = [-10, 10];
 
-A = zeros(1,numRobots); %Allocation
+A = zeros(1,numRobots-2); %Allocation
 
-%% Initalising Objects
-
+%% Experimental setup
 %setup 1
-objs = 2;
-qualities = [0.5,0.5];
-preset = [-4.5,7.5; 4.5,-7.5];
+% objs = 2;
+% qualities = [0.5,0.5];
+% preset = [-4.5,7.5; 4.5,-7.5];
 
 %setup 2
 % objs = 4;
@@ -35,9 +34,9 @@ preset = [-4.5,7.5; 4.5,-7.5];
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 
 % %setup 3
-% objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 
 %% Adding Objects to environment
 objects = zeros(objs,3);
@@ -92,17 +91,17 @@ robots = initBots(robots,objs,diffX,diffY);
 % robots = robots.robots;
 %% Setting up the visulisation
 
-%Initalising main envrionment visu
-poses = extPoses(robots);
-env.Poses =  poses;
-env(1:numRobots, poses, objects);
-xlim(limX);   % Without this, axis resizing can slow things down
-ylim(limY);  
-
-%Sets ojbect labels
-for i = 1:objs
-    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-end
+% %Initalising main envrionment visu
+% poses = extPoses(robots);
+% env.Poses =  poses;
+% env(1:numRobots, poses, objects);
+% xlim(limX);   % Without this, axis resizing can slow things down
+% ylim(limY);  
+% 
+% %Sets ojbect labels
+% for i = 1:objs
+%     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+% end
 
 
 %% Bees setup
@@ -148,14 +147,67 @@ for i = 1:runs
     % 10 possible solutions
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
+    tests = floor(FoodNumber ./ 2);
+%     Method 1: random
+%     A is the solutions matrix, and is randomly initalised
+%     A = (rand(FoodNumber,D) .* Range) + Lower;
     
-    % A is the solutions matrix, and is randomly initalised
-    A = (rand(FoodNumber,D) .* Range) + Lower;
+%     Method 2: DBA
+    Counter = zeros(1,objs);
+    A = [];
+%     for h = 1:tests %FoodNumber
+    for h = 1:FoodNumber
+        for j = 1:D
+            if j <= objs
+                A(h,j) = j;
+                Counter(A(h,j)) = Counter(A(h,j)) + 1;
+            else
+                [P,Q] = newFit(robots{j}.pose);
+                % MAE does not consider already allocated robots.
+                A(h,j) = P;
+            end
+        end
+    end
+%     A = [ones(tests,objs),A];
+%     %Method 3: Greedy
+% 
+%     for h = tests+1:FoodNumber
+% %         test = zeros(1,numRobots);
+%         Dists = zeros(numRobots,objs);
+%         for j = 1:numRobots
+%             for k = 1:objs
+%                 Dists(j,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
+%             end
+%             Dists(j,objs+1) = j;
+%         end
+%         Dists = sortrows(Dists);
+% 
+%         left = numRobots;
+%         On = 0;
+%         qualDyn = qualities;
+%         for j = 1:objs
+%             props = round(left * qualities(1));
+%             A(h,Dists( (On + 1):(On+props) ,end)') = j;
+%             Dists = Dists(props+1:end,2:end);
+%             Dists = sortrows(Dists);
+%             %%
+% 
+%             left = left - props;
+%             tmp = qualities(1);
+%             qualities = qualities(2:end);
+%             qualities = qualities ./ (1-tmp);
+%         end
+%     qualities = qualDyn;
+%     end
+%     A = A(:,objs+1:end);
+    %%
+    
     A = round(A);
     
     %Calculate current fitnesses.
+    test = beeFit(FoodNumber,A,robots,qualities,1);
     fitness = beeFit(FoodNumber,A,robots,qualities,0);
-
+    
     %Finds all the indviduals with the best value
     BestInd= find( fitness == max(fitness) );
     % Arbitarily selects the last individual in the swarm with that value
@@ -170,8 +222,8 @@ for i = 1:runs
     
     %% Big Loop
     iter=1;
-    sampleFits = zeros(numRobots,FoodNumber); %Testing variable
-    
+%     sampleFits = zeros(numRobots-objs,FoodNumber); %Testing variable
+    gTrials = 0;
     
     while ((iter <= maxCycle))
         %% Employed Bee Phase
@@ -227,32 +279,40 @@ for i = 1:runs
             GlobalMax=fitness(ind);
             GlobalParams=A(ind,:);
             coeffs(i) = iter;
+            gTrails = 0;
+         else
+%              gTrials = gTrials + 1;
+%             if gTrials > 50
+%                 break;
+%             end
          end
         
         dists(iter) = GlobalMax;%1/((testing + (1 /numRobots))*GlobalMax);
         %% Scout Bee Phase
         
-        ind=find(trial==max(trial));
-        ind=ind(end);
+%         ind=find(trial==max(trial));
+%         ind=ind(end);
+%         
+%         if (trial(ind)>limit)
+%             trial(ind)=0;
+%             
+%             sol = (rand(1,D) * Range(ind)) + Lower(ind);
+%             sol = round(sol);
+% 
+%             FitnessSol=beeFit(1,sol,robots,qualities,0);
+%             
+%             A(ind,:)=sol;
+%             fitness(ind)=FitnessSol;
+%         end
         
-        if (trial(ind)>limit)
-            trial(ind)=0;
-            
-            sol = (rand(1,D) * Range(ind)) + Lower(ind);
-            sol = round(sol);
-
-            FitnessSol=beeFit(1,sol,robots,qualities,0);
-            
-            A(ind,:)=sol;
-            fitness(ind)=FitnessSol;
-        end
-        
-        if(mod(iter,Coeff) == 0)
-            sampleFits(iter/Coeff,:) = fitness;
-        end
-         
-        
+%         if(mod(iter,Coeff) == 0)
+%             sampleFits(iter/Coeff,:) = fitness;
+%         end
+        sampleFits(iter,:) = fitness;
         iter = iter + 1;
+        if(iter > (maxCycle /2))
+            waitfor(0.01);
+        end
     end
     
     %% End of Loop Recording
@@ -263,8 +323,13 @@ for i = 1:runs
     if(i < (runs))
         robots = initBots(robots,objs,diffX,diffY); %Sets a New robots array
     end
+%     figure(4)
+%     plot(sampleFits)
+    Vals(i) = max(sampleFits(end,:));
+    waitfor(0.01)
 end
-coeffs = coeffs ./ numRobots;
+    
+% coeffs = coeffs ./ numRobots;
 % figure(2)
 % plot(dists)
 
@@ -275,6 +340,18 @@ sample = [1:objs,GlobalMaxes(end,:)];
 
 
 %% Producing an example visulisation
+% %Initalising main envrionment visu
+poses = extPoses(robots);
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+xlim(limX);   % Without this, axis resizing can slow things down
+ylim(limY);  
+
+%Sets ojbect labels
+for i = 1:objs
+    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
+
 figure(1)
 % sample = [1:objs,GlobalParams];
 % sample = [1,2,opt];
@@ -290,44 +367,44 @@ env.Poses =  poses;
 env(1:numRobots, poses, objects);
 
 
-%% Bar Chart
-% Adds fixed pos robots to results
-fixed = ones(runs,1)*(1:objs);
-% tmp = histcounts(sample,'Normalization','probability');
-tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
-tmp = tmp*100;
-visE = tmp;
-x = 1:length(tmp);
-
-for i =1:length(tmp)
-    y(i,1) = tmp(i);
-    y(i,2) = 100*(qualities(i)/ sum(qualities));
-end
-
-figure(2);
-tmp = bar(x,y,0.75);
-tmp(1).FaceColor = [0 1 1];
-tmp(2).FaceColor = [0 1 0];
-set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
-xlabel('Target');
-ylabel('Number of robots (%)');
-ylim([0 70]);
-
-legend('Location','northwest')
-%%
-figure(3)
-plot(coeffs)
-%%
-maxE = max(mae);
-avgE = mean(mae);
-
-%% Output of results
-format short
-disp('   AvgE(%)   MaxE(%)   Avg Dist');
-% disp('    AvgE      MaxE');
-disp([100*avgE 100*maxE (mean(allDists)/10)]);
-
-out = [GlobalMaxes,mae',allDists'];
-%% Writing results to csv for validation
-writematrix((out),'Test.csv');
+% %% Bar Chart
+% % Adds fixed pos robots to results
+% fixed = ones(runs,1)*(1:objs);
+% % tmp = histcounts(sample,'Normalization','probability');
+% tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
+% tmp = tmp*100;
+% visE = tmp;
+% x = 1:length(tmp);
+% 
+% for i =1:length(tmp)
+%     y(i,1) = tmp(i);
+%     y(i,2) = 100*(qualities(i)/ sum(qualities));
+% end
+% 
+% figure(2);
+% tmp = bar(x,y,0.75);
+% tmp(1).FaceColor = [0 1 1];
+% tmp(2).FaceColor = [0 1 0];
+% set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+% xlabel('Target');
+% ylabel('Number of robots (%)');
+% ylim([0 70]);
+% 
+% legend('Location','northwest')
+% %%
+% figure(3)
+% plot(coeffs)
+% %%
+% maxE = max(mae);
+% avgE = mean(mae);
+% 
+% %% Output of results
+% format short
+% disp('   AvgE(%)   MaxE(%)   Avg Dist');
+% % disp('    AvgE      MaxE');
+% disp([100*avgE 100*maxE (mean(allDists)/10)]);
+% 
+% out = [GlobalMaxes,mae',allDists'];
+% %% Writing results to csv for validation
+% writematrix((out),'Test.csv');
 

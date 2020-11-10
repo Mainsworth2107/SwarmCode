@@ -3,6 +3,7 @@ function sol = beeNew(A,i,neighbour)
     global allObjs;
     objs = height(allObjs);
     
+    
     P = A(i,:);
     Q = A(neighbour,:);
     

@@ -5,10 +5,10 @@
 
 %% Create a multi-robot environment
 flush
-runs = 50;
-numRobots = 100; %Self explanitary
+runs = 1;
+numRobots = 40; %Self explanitary
 % Coeff = 2; %Looping coefficent (Approriate measure)
-Coeff = 2;
+Coeff = 6;
 %The looping coefficent is representative of the number of iterations
 %required to develop an optimal soultion. As such, the goal of
 %optimisiation is minimising this multiplier.
@@ -22,7 +22,8 @@ limY = [-10, 10];
 
 A = zeros(1,numRobots-2); %Allocation
 
-%% Experimental setup
+%% Initalising Objects
+
 %setup 1
 % objs = 2;
 % qualities = [0.5,0.5];
@@ -82,13 +83,13 @@ diffY = 15;
 %This is the input scenario being optimised
 % (for each scario the enitre optimisation process is re ran)
 
-robots = cell(numRobots,1);
-robots = initBots(robots,objs,diffX,diffY);
+% robots = cell(numRobots,1);
+% robots = initBots(robots,objs,diffX,diffY);
 
 
 % save('robots.mat','robots'); 
-% robots = load('robots.mat');
-% robots = robots.robots;
+robots = load('robots.mat');
+robots = robots.robots;
 %% Setting up the visulisation
 
 % %Initalising main envrionment visu
@@ -108,7 +109,7 @@ robots = initBots(robots,objs,diffX,diffY);
 % Lines 1 - 25
 
 FoodNumber = 10; %Number of continous soltions (fixed at 10)
-limit = 100; %A food source which could not be improved through "limit" 
+limit = 80; %A food source which could not be improved through "limit" 
 %   trials is abandoned by its employed bee*/
 
 %Note: This only allocates the N-2 robots not already allocated
@@ -140,6 +141,7 @@ dists = fitness;
 
 %% Main Loop.
 for i = 1:runs
+% for i = 1:1
     %% ABC Algortihm
     % Input is robots
     
@@ -147,7 +149,8 @@ for i = 1:runs
     % 10 possible solutions
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
-    tests = floor(FoodNumber ./ 2);
+%     tests = floor(3*FoodNumber ./ 4);
+    tests = 9;
 %     Method 1: random
 %     A is the solutions matrix, and is randomly initalised
 %     A = (rand(FoodNumber,D) .* Range) + Lower;
@@ -155,12 +158,11 @@ for i = 1:runs
 %     Method 2: DBA
     Counter = zeros(1,objs);
     A = [];
-%     for h = 1:tests %FoodNumber
-    for h = 1:FoodNumber
-        for j = 1:D
-            if j <= objs
+    for h = 1:tests %FoodNumber
+%     for h = 1:FoodNumber
+        for j = 1:numRobots
+            if(j <= objs)
                 A(h,j) = j;
-                Counter(A(h,j)) = Counter(A(h,j)) + 1;
             else
                 [P,Q] = newFit(robots{j}.pose);
                 % MAE does not consider already allocated robots.
@@ -168,38 +170,39 @@ for i = 1:runs
             end
         end
     end
-%     A = [ones(tests,objs),A];
+%     A = A(:,objs+1:end);
 %     %Method 3: Greedy
 % 
-%     for h = tests+1:FoodNumber
-% %         test = zeros(1,numRobots);
-%         Dists = zeros(numRobots,objs);
-%         for j = 1:numRobots
-%             for k = 1:objs
-%                 Dists(j,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
-%             end
-%             Dists(j,objs+1) = j;
-%         end
-%         Dists = sortrows(Dists);
-% 
-%         left = numRobots;
-%         On = 0;
-%         qualDyn = qualities;
-%         for j = 1:objs
-%             props = round(left * qualities(1));
-%             A(h,Dists( (On + 1):(On+props) ,end)') = j;
-%             Dists = Dists(props+1:end,2:end);
-%             Dists = sortrows(Dists);
-%             %%
-% 
-%             left = left - props;
-%             tmp = qualities(1);
-%             qualities = qualities(2:end);
-%             qualities = qualities ./ (1-tmp);
-%         end
-%     qualities = qualDyn;
-%     end
-%     A = A(:,objs+1:end);
+    for h = tests+1:FoodNumber
+%     for h = 1:FoodNumber
+%         test = zeros(1,numRobots);
+        Dists = zeros(numRobots,objs);
+        for j = 1:numRobots
+            for k = 1:objs
+                Dists(j,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
+            end
+            Dists(j,objs+1) = j;
+        end
+        Dists = sortrows(Dists);
+
+        left = numRobots;
+        On = 0;
+        qualDyn = qualities;
+        for j = 1:objs
+            props = round(left * qualities(1));
+            A(h,Dists( (On + 1):(On+props) ,end)') = j;
+            Dists = Dists(props+1:end,2:end);
+            Dists = sortrows(Dists);
+            %%
+
+            left = left - props;
+            tmp = qualities(1);
+            qualities = qualities(2:end);
+            qualities = qualities ./ (1-tmp);
+        end
+    qualities = qualDyn;
+    end
+    A = A(:,objs+1:end);
     %%
     
     A = round(A);
@@ -221,6 +224,9 @@ for i = 1:runs
     trial=zeros(1,FoodNumber); %reset trial counters
     
     %% Big Loop
+    if(i == 20)
+        waitfor(0.01)
+    end
     iter=1;
 %     sampleFits = zeros(numRobots-objs,FoodNumber); %Testing variable
     gTrials = 0;
@@ -286,28 +292,48 @@ for i = 1:runs
 %                 break;
 %             end
          end
-        
+         
         dists(iter) = GlobalMax;%1/((testing + (1 /numRobots))*GlobalMax);
-        %% Scout Bee Phase
+        % Scout Bee Phase
         
-%         ind=find(trial==max(trial));
-%         ind=ind(end);
-%         
-%         if (trial(ind)>limit)
-%             trial(ind)=0;
-%             
-%             sol = (rand(1,D) * Range(ind)) + Lower(ind);
-%             sol = round(sol);
-% 
-%             FitnessSol=beeFit(1,sol,robots,qualities,0);
-%             
-%             A(ind,:)=sol;
-%             fitness(ind)=FitnessSol;
-%         end
+        toChange=find(trial==max(trial));
+        toChange=toChange(end);
+        if(iter == 3)
+            toChange = ind;
+        end
+        
+        if (trial(toChange)>limit)   %% && ~(toChange==ind)) || (iter==5)
+            trial = trial - 25;
+            trial(toChange)=0;
+            if ~isempty(find(trial<0))
+                trial(trial<0) = 0;
+            end
+            sol = (rand(1,D) * Range(toChange)) + Lower(toChange);
+            sol = round(sol);
+
+            
+%             sol = A(toChange,:);            
+%            mutation = 0.5;
+%            for j=1:length(sol)
+%                if(rand < mutation)
+%                    sol(j) = sol(j) + round( (2*rand*(objs-1)) ); %- 1
+%                    sol(j) = mod(sol(j),objs);
+%                    if(sol(j) == 0)
+%                        sol(j) = sol(j) + objs;
+%                    end
+%                end
+%            end
+            
+            FitnessSol=beeFit(1,sol,robots,qualities,0);
+            
+            A(toChange,:)=sol;
+            fitness(toChange)=FitnessSol;
+        end
         
 %         if(mod(iter,Coeff) == 0)
 %             sampleFits(iter/Coeff,:) = fitness;
 %         end
+
         sampleFits(iter,:) = fitness;
         iter = iter + 1;
         if(iter > (maxCycle /2))
@@ -330,13 +356,14 @@ for i = 1:runs
 end
     
 % coeffs = coeffs ./ numRobots;
-% figure(2)
-% plot(dists)
+figure(3)
+plot(sampleFits)
 
 %% 
 
 
-sample = [1:objs,GlobalMaxes(end,:)];
+% sample = [1:objs,GlobalMaxes(end,:)];
+sample = [1:objs,GlobalParams];
 
 
 %% Producing an example visulisation
@@ -367,30 +394,30 @@ env.Poses =  poses;
 env(1:numRobots, poses, objects);
 
 
-% %% Bar Chart
-% % Adds fixed pos robots to results
-% fixed = ones(runs,1)*(1:objs);
-% % tmp = histcounts(sample,'Normalization','probability');
-% tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
-% tmp = tmp*100;
-% visE = tmp;
-% x = 1:length(tmp);
-% 
-% for i =1:length(tmp)
-%     y(i,1) = tmp(i);
-%     y(i,2) = 100*(qualities(i)/ sum(qualities));
-% end
-% 
-% figure(2);
-% tmp = bar(x,y,0.75);
-% tmp(1).FaceColor = [0 1 1];
-% tmp(2).FaceColor = [0 1 0];
-% set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
-% xlabel('Target');
-% ylabel('Number of robots (%)');
-% ylim([0 70]);
-% 
-% legend('Location','northwest')
+%% Bar Chart
+% Adds fixed pos robots to results
+fixed = ones(runs,1)*(1:objs);
+% tmp = histcounts(sample,'Normalization','probability');
+tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
+tmp = tmp*100;
+visE = tmp;
+x = 1:length(tmp);
+
+for i =1:length(tmp)
+    y(i,1) = tmp(i);
+    y(i,2) = 100*(qualities(i)/ sum(qualities));
+end
+
+figure(2);
+tmp = bar(x,y,0.75);
+tmp(1).FaceColor = [0 1 1];
+tmp(2).FaceColor = [0 1 0];
+set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+xlabel('Target');
+ylabel('Number of robots (%)');
+ylim([0 70]);
+
+legend('Location','northwest')
 % %%
 % figure(3)
 % plot(coeffs)

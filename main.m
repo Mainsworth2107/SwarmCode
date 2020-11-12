@@ -1,5 +1,7 @@
-%% Distributed bees algorithm
- 
+%% Distributed Bees Algorithm
+% Written by Matthew Ainsworth
+% Last modified: 12/11/2020
+
 %% Acknowledgements
  
 % Based on: Distributed Bees Algorithm for Task Allocation in Swarm of Robots

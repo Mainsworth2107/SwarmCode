@@ -136,7 +136,8 @@ for i = 1:runs
             
             % Finds the allocation using the DBA fitness function, also
             % returning distance
-            [A(i,j),Q] = DBAFit(robots{j}.pose); 
+            [P,Q] = DBAFit(robots{j}.pose); 
+            A(i,j) = P;
             
             %The distance does not need to consider the robots at objects
             %As they are always 0 units from their respective goals.

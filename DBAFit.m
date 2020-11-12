@@ -22,7 +22,7 @@ function [X,Y] = DBAFit(poseIn)
     end
     
     % For each object:
-    for i = 1:length(costs
+    for i = 1:length(costs)
         
         % Finds the Euclidian distance of each object from the robot
         costs(i) = distEu(poseIn(1:2),allObjs(i,1:2)); 

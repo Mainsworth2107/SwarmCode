@@ -1,10 +1,10 @@
 README for DBA code
 
-DBA Algorithm (Andina et al): Implementation and verification of DBA Algorithm
+DBA Algorithm (Jevtić et al): Implementation and verification of DBA Algorithm
 
 FILES:
 
-DBAFit.m: Uses the method described in Andina et al to produce an allocation for each robot in the swarm.
+DBAFit.m: Uses the method described in Jevtić et al to produce an allocation for each robot in the swarm.
 
 distEU: Calculates the Euclidian distance between any equal sized point sets (A) and (B).
 

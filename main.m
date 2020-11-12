@@ -5,8 +5,9 @@
 
 %% Create a multi-robot environment
 flush
-runs = 50;
-numRobots = 100; %Self explanitary
+% runs = 50;
+runs = 1;
+numRobots = 40; %Self explanitary
 % Coeff = 2; %Looping coefficent (Approriate measure)
 Coeff = 2;
 %The looping coefficent is representative of the number of iterations
@@ -87,8 +88,8 @@ robots = initBots(robots,objs,diffX,diffY);
 
 
 % save('robots.mat','robots'); 
-% robots = load('robots.mat');
-% robots = robots.robots;
+robots = load('robots.mat');
+robots = robots.robots;
 %% Setting up the visulisation
 
 % %Initalising main envrionment visu
@@ -150,24 +151,24 @@ for i = 1:runs
     tests = floor(FoodNumber ./ 2);
 %     Method 1: random
 %     A is the solutions matrix, and is randomly initalised
-%     A = (rand(FoodNumber,D) .* Range) + Lower;
+    A = (rand(FoodNumber,D) .* Range) + Lower;
     
-%     Method 2: DBA
-    Counter = zeros(1,objs);
-    A = [];
-%     for h = 1:tests %FoodNumber
-    for h = 1:FoodNumber
-        for j = 1:D
-            if j <= objs
-                A(h,j) = j;
-                Counter(A(h,j)) = Counter(A(h,j)) + 1;
-            else
-                [P,Q] = newFit(robots{j}.pose);
-                % MAE does not consider already allocated robots.
-                A(h,j) = P;
-            end
-        end
-    end
+% %     Method 2: DBA
+%     Counter = zeros(1,objs);
+%     A = [];
+% %     for h = 1:tests %FoodNumber
+%     for h = 1:FoodNumber
+%         for j = 1:D
+%             if j <= objs
+%                 A(h,j) = j;
+%                 Counter(A(h,j)) = Counter(A(h,j)) + 1;
+%             else
+%                 [P,Q] = newFit(robots{j}.pose);
+%                 % MAE does not consider already allocated robots.
+%                 A(h,j) = P;
+%             end
+%         end
+%     end
 %     A = [ones(tests,objs),A];
 %     %Method 3: Greedy
 % 
@@ -330,8 +331,8 @@ for i = 1:runs
 end
     
 % coeffs = coeffs ./ numRobots;
-% figure(2)
-% plot(dists)
+figure(3)
+plot(sampleFits)
 
 %% 
 
@@ -367,31 +368,31 @@ env.Poses =  poses;
 env(1:numRobots, poses, objects);
 
 
-% %% Bar Chart
-% % Adds fixed pos robots to results
-% fixed = ones(runs,1)*(1:objs);
-% % tmp = histcounts(sample,'Normalization','probability');
-% tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
-% tmp = tmp*100;
-% visE = tmp;
-% x = 1:length(tmp);
-% 
-% for i =1:length(tmp)
-%     y(i,1) = tmp(i);
-%     y(i,2) = 100*(qualities(i)/ sum(qualities));
-% end
-% 
-% figure(2);
-% tmp = bar(x,y,0.75);
-% tmp(1).FaceColor = [0 1 1];
-% tmp(2).FaceColor = [0 1 0];
-% set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
-% xlabel('Target');
-% ylabel('Number of robots (%)');
-% ylim([0 70]);
-% 
-% legend('Location','northwest')
-% %%
+%% Bar Chart
+% Adds fixed pos robots to results
+fixed = ones(runs,1)*(1:objs);
+% tmp = histcounts(sample,'Normalization','probability');
+tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
+tmp = tmp*100;
+visE = tmp;
+x = 1:length(tmp);
+
+for i =1:length(tmp)
+    y(i,1) = tmp(i);
+    y(i,2) = 100*(qualities(i)/ sum(qualities));
+end
+
+figure(2);
+tmp = bar(x,y,0.75);
+tmp(1).FaceColor = [0 1 1];
+tmp(2).FaceColor = [0 1 0];
+set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+xlabel('Target');
+ylabel('Number of robots (%)');
+ylim([0 70]);
+
+legend('Location','northwest')
+%%
 % figure(3)
 % plot(coeffs)
 % %%

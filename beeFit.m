@@ -14,11 +14,13 @@ function X = beeFit(FoodNumber,A,robots,qualities,mode)
             counts(k) = length(find( A(i,:)==k ));
         end
 
-        
+        try
         for k = 1:length(A(i,:)) %First objs robots ignored
             dist = dist + distEu(robots{k+objs}.pose(1:2), allObjs(A(i,k),1:2) );
         end
-        
+        catch
+            waitfor(0.01);
+        end
         %Averages the distance across all robots
         dist = dist / length(robots);
         

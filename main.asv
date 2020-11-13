@@ -16,14 +16,14 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 10; %Initialises the number of robots.
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Disables robot pathing 
  
 % Limits of visualisation axes
-limX = [-1, 1];
-limY = [-1.4 1.4]; 
+limX = [-14 14]; 
+limY = [-10, 10];
  
 A = zeros(1,numRobots); %Calculated allocation
  
@@ -35,12 +35,12 @@ qualities = [0.5,0.5];          % Target qualities (q)
 preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-% objs = 4;
+% objs = 2;
 % qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
  
 % Setup 3
-% objs = 4;
+% objs = 2;
 % qualities = [0.1,0.2,0.3,0.4];
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
  
@@ -57,7 +57,7 @@ for i = 1:objs %Initialises the objects within the environment
     objects(i,3) = i;
     
     %Positions are preset for the DBA
-    objects(i,1:2) = preset(i,:) / 10;
+    objects(i,1:2) = preset(i,:);
     %objects(i,1:2) = [rand*limX(2),rand*limY(2)]; %Random object initialisation
  
     %Sets the necessary labels to draw all objects as circles
@@ -80,14 +80,14 @@ env.objectColors = colours;
 env.objectMarkers = objstr;
  
 % Hides robot IDs
-% env.showRobotIds = false;
+env.showRobotIds = false;
  
 %% Initialises robots and arena
 robots = cell(numRobots,1);
  
 %Arena dimensions
-diffX = 1.5;
-diffY = 2.125;
+diffX = 21.25;
+diffY = 15;
  
 %Function to initialise all robots
 robots = initBots(robots,objs,diffX,diffY); 
@@ -106,20 +106,15 @@ env.Poses =  poses;
 %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
 env(1:numRobots, poses, objects);
  
-line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
-line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
-line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-
 % Ensure that the visualisations axes remain fixed. 
 % Without this, axis resizing can slow things down
+ 
 xlim(limX);   
-ylim(limY);
-
-axis equal 
+ylim(limY);  
+axes 
 % Sets object labels
 for i = 1:objs
-    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
 end
  
 %% Running the algorithm
@@ -127,10 +122,9 @@ runs = 50; %Total scenarios (robot position sets) to be tested
  
 %Initialises output variables
 mae = zeros(1,runs); % Mean absolute error.
-times = mae;
 dists = mae;
 for i = 1:runs
-    tic;
+ 
     counts = zeros(1,objs); %Counts of each allocation for calculating MAE
     
     % For Each robot
@@ -155,7 +149,6 @@ for i = 1:runs
             % considered
             counts(A(i,j)) = counts(A(i,j)) + 1;
         end
-    times(i) = toc;
     end
     % Normalises the robot counts
     counts = counts ./ (sum(counts));
@@ -173,11 +166,7 @@ end
 %Example allocation chosen as last in set.
 sample = A(end,:); 
 poses = extPoses(robots);
-
-%Draw the example robot positions.
-env.Poses =  poses;
-env(1:numRobots, poses, objects);
-
+ 
 %Draws lines between each robot and its respective line to visually
 %represent the example allocation.
 for i = objs:numRobots
@@ -186,6 +175,9 @@ for i = objs:numRobots
          'color','black','LineWidth',1);
 end
  
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
 %% Bar chart comparing average allocation across all runs to desired allocation
  
 %Counts the total number of robots allocated to each task, then normalises
@@ -236,22 +228,13 @@ avgE = mean(mae);
 %Displaying the average and maximum mae alongside total distance
 %Note that mae is shown in % and distance is shown in m.
 disp('   AvgE(%)   MaxE(%)   Avg Dist');
-disp([100*avgE 100*maxE (mean(dists))]);
+disp([100*avgE 100*maxE (mean(dists)/10)]);
 
-% O = zeros(runs,objs);
-% for i = 1:height(A)
-%     O(i,:) = histcounts(A(i,:));
-% end
-disp('Average time per run (ms)');
-times = 1000*times;
-disp(mean(times));
-
-disp('Average time per robot (μs)');
-disp(1e3*(mean(times)/numRobots))
-
-
+O = zeros(runs,2);
+for i = 1:height(A)
+    O(i,:) = histcounts(A(i,:));
+end
 
 % Writing results to csv for validation
-out = [floor(O),mae',dists',times'];
-% out = [floor(A(1,:)),mae(1)',dists(1)'];
+out = [floor(O),mae',dists'];
 writematrix((out),'Test.csv');

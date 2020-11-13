@@ -1,156 +1,187 @@
-%% Distributed bees aglrotihm
-%% Based on:
-%% Uses The Mobile Simulation Toolbox from: The MathWorks, Inc.
-
-
+%% Acknowledgements
+%
+% Artificial Bee Colony aglrotihm
+% Based on Materials Found at: https://abc.erciyes.edu.tr/
+% Uses The Mobile Robotics Simulation Toolbox (MRST) from: The MathWorks, Inc.
+% Note: A small modification was made to the MRST code to draw the objects
+% in the environment as slightly larger than the default size.
+ 
+%N represents the number of robots (in comments)
+%M represents the number of objects (in comments)
+ 
 %% Create a multi-robot environment
 flush
-% runs = 50;
-runs = 1;
-numRobots = 40; %Self explanitary
-% Coeff = 2; %Looping coefficent (Approriate measure)
-Coeff = 2;
-%The looping coefficent is representative of the number of iterations
-%required to develop an optimal soultion. As such, the goal of
-%optimisiation is minimising this multiplier.
+numRobots = 20; %Initialises the number of robots.
 
-env = MultiRobotEnv(numRobots); %Initalises robot envrionment
-env.showTrajectory = false; %Disables live pathing
-% env.robotRadius = 0.25; %Determines robot chunkiness
+Coeff = 2; %Coefficeint that controls total ABC iterations
+runs = 1; % Total runs of the algorithm
 
-limX = [-14 14]; % 8
-limY = [-10, 10];
+env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
+env.showTrajectory = false; %Disables robot pathing 
+ 
+% Limits of visualisation axes
+% limX = [-1, 1];
+% limY = [-1.4 1.4]; 
 
-A = zeros(1,numRobots-2); %Allocation
-
-%% Experimental setup
-%setup 1
-% objs = 2;
-% qualities = [0.5,0.5];
-% preset = [-4.5,7.5; 4.5,-7.5];
-
-%setup 2
+limX = [-1.4 1.4];
+limY = [-1, 1];
+ 
+A = zeros(1,numRobots); %Calculated allocation
+ 
+%% Selecting testing scenario
+ 
+% Setup 1
+% objs = 2;                       % Number of Targets
+% qualities = [0.5,0.5];          % Target qualities (q)
+% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+ 
+% Setup 2
 % objs = 4;
 % qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-
-% %setup 3
+ 
+% Setup 3
 objs = 4;
 qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
 
 %% Adding Objects to environment
-objects = zeros(objs,3);
-colours = objects;
-
-%Stores the detection data of an object.
-detected = [[],[]];
-%preset = [2,2;2,14;14,2;14,14]; %Must be the same size as all objects
-% ;-4.5,-7.5; 4.5,7.5]; %];
-
-objstr = 'o';
-for i = 1:objs
+objects = zeros(objs,3); %Stores the coordinates of each object
+colours = objects; %Sets the colour of each object
+ 
+% Note the objects array also stores the object ID to account for situations
+% where strict object ordering might not be possible or necessary.
+ 
+objstr = 'o'; %Marker to draw the objects as circles.
+ 
+for i = 1:objs %Initialises the objects within the environment
     objects(i,3) = i;
-    objects(i,1:2) = preset(i,:);
-    %objects(i,1:2) = [rand*limX(2),rand*limY(2)];
-
-    % Sets the necessary labels to draw all objects as circles
+    
+    %Positions are preset for the DBA
+    objects(i,1:2) = preset(i,:) / 10;
+    %objects(i,1:2) = [rand*limX(2),rand*limY(2)]; %Random object initialisation
+ 
+    %Sets the necessary labels to draw all objects as circles
     if( i > 1)
         objstr = strcat(objstr,'o');
     end  
+    
     %Makes all objects red
     colours(i,1) = 1;
     colours(i,2:3) = 0;
 end
-
-%Initalises global objects reference
+ 
+%Initialises global objects reference
 global allObjs;
 allObjs = [objects,(qualities')];
-
+ 
+%Sets the necessary environment variables to draw the objects
 env.hasObjects = 1;
 env.objectColors = colours;
 env.objectMarkers = objstr;
-
+ 
 % Hides robot IDs
 % env.showRobotIds = false;
-
-%% Initalises arena and robots
-
-% Arena dimensions
-diffX = 21.25;
-diffY = 15;
-
-%This is the input scenario being optimised
-% (for each scario the enitre optimisation process is re ran)
-
+ 
+%% Initialises robots and arena
 robots = cell(numRobots,1);
-robots = initBots(robots,objs,diffX,diffY);
+ 
+%Arena dimensions
+diffX = 2.125;
+diffY = 1.5; 
 
-
+%Function to initialise all robots
+robots = initBots(robots,objs,diffX,diffY); 
+ 
+% Allows for a sample robot position set to be loaded for specific tests
 % save('robots.mat','robots'); 
-robots = load('robots.mat');
-robots = robots.robots;
-%% Setting up the visulisation
+% robots = load('robots.mat');
+% robots = robots.robots;
 
-% %Initalising main envrionment visu
-% poses = extPoses(robots);
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-% xlim(limX);   % Without this, axis resizing can slow things down
-% ylim(limY);  
-% 
-% %Sets ojbect labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
+%% Setting up the visualisation
+%This process is slow, so can be skipped to save on processing time with
+%larger problems.
+
+%Extracts the robot poses
+poses = extPoses(robots);
+env.Poses =  poses;
+ 
+%Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
+env(1:numRobots, poses, objects);
+ 
+line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
+line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
+line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+
+% Ensure that the visualisations axes remain fixed. 
+% Without this, axis resizing can slow things down
+xlim(limX);   
+ylim(limY);
+
+axis equal 
+% Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
 
 
-%% Bees setup
-% Lines 1 - 25
+%% ABC Algortihm Setup
 
-FoodNumber = 10; %Number of continous soltions (fixed at 10)
-limit = 100; %A food source which could not be improved through "limit" 
-%   trials is abandoned by its employed bee*/
+FoodNumber = 10; %Number of potneital soltions being improved. (fixed at 10)
 
-%Note: This only allocates the N-2 robots not already allocated
+%A solution which could not be improved through "limit" 
+% trials is abandoned by its employed bee
+limit = 100; 
 
-D = numRobots-objs; %/*The number of parameters of the problem to be optimized*/
-maxCycle = Coeff*D; %Assumption that req its is directly proportianl to problem size
+%Note: This algortihm optimises the allocations of robotsd that have not
+%already found an onject (as by definiton, these rbots cannot re aloocate).
+
+D = numRobots-objs; %The number of parameters of the problem to be optimized
+
+%Assumption that required iterations are proportianl to problem size
+maxCycle = Coeff*D; 
 
 %Probelm is bounded by the number of objects in the area
-ub = ones(1,D)*objs; %/*upper bounds of the parameters. */
-lb = ones(1,D);%/*lower bounds of the parameters.*/
+ub = ones(1,D)*objs; %Upper bounds of the parameters. 
+lb = ones(1,D);%Lower bounds of the parameters.
 
 %Store the best variables per cycle
 GlobalMaxes = zeros(runs,D);
 FitMaxes = zeros(1,runs);
-mae = zeros(1,runs); %MAE for each run
-allDists = mae;
 
-%Tracks how quickly the optimum is reached
+%Tracks how quickly the optimum is reached 
+%Note: very dependent on rng, not very helpful
 coeffs = zeros(1,runs);
 
 %Fitnessess and dist for each developed solution (in loop)
 fitness = zeros(1,FoodNumber);
 dists = fitness;
 
+mae = zeros(1,runs); %MAE for each run
+allDists = mae;      %Total distance for each run
+
 % opt = [1,2,2,2,2,2,1,2....
 %        2,2,1,1,1,1,2,2,1,1 ...
 %        2,1,1,2,1,1,1,2,2,1 ...
 %        1,1,2,1,1,2,2,1,2,1];
 
-%% Main Loop.
+%% Main ABC Algortihm Loop.
 for i = 1:runs
-    %% ABC Algortihm
-    % Input is robots
     
-    %% Initalisation
+    %% Initalisation of a run
     % 10 possible solutions
+    
+    %     Method 1: random
+    
+    %Randomly initalises the possible solutions (A), accounting for probelm
+    %bounds
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
-    tests = floor(FoodNumber ./ 2);
-%     Method 1: random
-%     A is the solutions matrix, and is randomly initalised
+    
+%     tests = floor(FoodNumber ./ 2);
+
     A = (rand(FoodNumber,D) .* Range) + Lower;
     
 % %     Method 2: DBA
@@ -203,103 +234,109 @@ for i = 1:runs
 %     A = A(:,objs+1:end);
     %%
     
-    A = round(A);
+    %Uses rounding to ensure all possible solutions consist of whole numbers
+    A = round(A); 
     
-    %Calculate current fitnesses.
-    test = beeFit(FoodNumber,A,robots,qualities,1);
+    %Calculates the fitness values for each possible solution.
     fitness = beeFit(FoodNumber,A,robots,qualities,0);
     
-    %Finds all the indviduals with the best value
+    %Finds all the indviduals with the best fitness value
     BestInd= find( fitness == max(fitness) );
-    % Arbitarily selects the last individual in the swarm with that value
+    
+    %Accounts for solutions each with the best fitness (not neccisarily equal)
     BestInd=BestInd(end);
 
-    % Saves the fitness and parameters of the best individual
+    % Saves the fitness and parameters of the best individual for later analysis
     GlobalMax = fitness(BestInd);
     GlobalParams = A(BestInd,:);
     
     %Resets trail array
     trial=zeros(1,FoodNumber); %reset trial counters
+    iter=1; %Resets iteration count
     
-    %% Big Loop
-    iter=1;
+    %% Main Iteration Loop
 %     sampleFits = zeros(numRobots-objs,FoodNumber); %Testing variable
-    gTrials = 0;
-    
     while ((iter <= maxCycle))
         %% Employed Bee Phase
-        for j=1:(FoodNumber) % Exactly [solutions] runs completed
+        for j=1:(FoodNumber) % For each employed bee ...
             
-%             tmp = A(j,:); % Testing value
-            
-            % Determines a shiifted solution
+            % Mutates the input solution
             sol = shiftSol(A,FoodNumber,j);
-%             length(find(~(tmp==sol)))
             
-            %Determines is the altered solution is better
+            %Determines is the mutated solution is better
             [fitness(j),trial(j)] = ...
                 updateSol(sol,fitness(j),trial(j),robots,qualities);
             
-            if trial(j) == 0 %Uses the fact that trials reset when a better solution is found
+            %If the mutated solution was better, update the solution set
+            if trial(j) == 0 
                 A(j,:) = sol;
             end
         end
         
-        %Solutions have p in range 0.1 to 1
+        % Once all 10 fitness values are known, normalise them to
+        % probailites in the range (0.1 - 1).
+        
         prob=(0.9.*fitness./max(fitness))+0.1;
              
         %% Onlooker Bee Phase
         j = 1; %Looping variable
         t=0;
-        while(t<FoodNumber)
-            if(rand<prob(j))
-                t=t+1;
-                sol = shiftSol(A,FoodNumber,j);
+        while(t<FoodNumber) %Until 10 onlooker bees have selected a target
+            if(rand<prob(j)) % If a solution is selected
+                t=t+1; %Increase selected solution count
 
-                %Determines is the altered solution is better
+                sol = shiftSol(A,FoodNumber,j); %Mutate the selected solution
+
+                %Determines is the mutated solution is better
                 [fitness(j),trial(j)] = ...
                     updateSol(sol,fitness(j),trial(j),robots,qualities);
 
+                %If the mutated solution was better, update the solution set
                 if trial(j) == 0
                     A(j,:) = sol;
                 end     
             end
 
+            % All possible solutions are looped through until 10 are chosen.
             j=j+1;
-            
             if (j==(FoodNumber)+1) 
                 j=1;
             end 
-            
         end
+     
+        %Finds the best current individual
+        ind=find(fitness==max(fitness));
+
+        %Accounts for the possiblty of more than 1 solution sharing the maxiumum fitness
+        ind=ind(end); 
         
-        %/*The best food source is memorized*/
-         ind=find(fitness==max(fitness));
-         ind=ind(end);
-         if (fitness(ind)>GlobalMax)
+        %If the current best value is better than the global best, update
+        %the global best value
+        if (fitness(ind)>GlobalMax)
             GlobalMax=fitness(ind);
             GlobalParams=A(ind,:);
             coeffs(i) = iter;
             gTrails = 0;
-         else
-%              gTrials = gTrials + 1;
-%             if gTrials > 50
-%                 break;
-%             end
-         end
+        end
+        dists(iter) = GlobalMax; %Records how the global maximum progresses
         
-        dists(iter) = GlobalMax;%1/((testing + (1 /numRobots))*GlobalMax);
         %% Scout Bee Phase
         
+        %Only one solution can be scouted per iteration
 %         ind=find(trial==max(trial));
 %         ind=ind(end);
-%         
+% 
+%         % If the maximum trail value is greater than the limit, reset the
+%         % counter ad choose a new solution for that individual.
 %         if (trial(ind)>limit)
 %             trial(ind)=0;
 %             
+%             % As with inital solutions, scouted solutions are generated
+%             % randomly
 %             sol = (rand(1,D) * Range(ind)) + Lower(ind);
 %             sol = round(sol);
-% 
+%               
+%             % Updates the fitness values to include the new solution
 %             FitnessSol=beeFit(1,sol,robots,qualities,0);
 %             
 %             A(ind,:)=sol;
@@ -309,34 +346,38 @@ for i = 1:runs
 %         if(mod(iter,Coeff) == 0)
 %             sampleFits(iter/Coeff,:) = fitness;
 %         end
+
+        % Record all ten fitness values for plotting results.
         sampleFits(iter,:) = fitness;
         iter = iter + 1;
-        if(iter > (maxCycle /2))
-            waitfor(0.01);
-        end
     end
     
     %% End of Loop Recording
+    
+    %Saves the overall maximum recording and parameters
     GlobalMaxes(i,:) = GlobalParams;
     FitMaxes(i) = GlobalMax;
+    
+    %Records the mae for each loop
     mae(i) = beeFit(1,GlobalParams,robots,qualities,1);
+    
+    %Record the total distance for ech loop
     allDists(i) = beeFit(1,GlobalParams,robots,qualities,2);
     if(i < (runs))
         robots = initBots(robots,objs,diffX,diffY); %Sets a New robots array
     end
 %     figure(4)
 %     plot(sampleFits)
-    Vals(i) = max(sampleFits(end,:));
+    
     waitfor(0.01)
 end
     
-% coeffs = coeffs ./ numRobots;
+% Plots how the fitness for all 10 potential solutions evolved through the
+% last run.
 figure(3)
 plot(sampleFits)
 
-%% 
-
-
+% Extends the final allcoation set to include static robots for plotting.
 sample = [1:objs,GlobalMaxes(end,:)];
 
 
@@ -357,53 +398,76 @@ figure(1)
 % sample = [1:objs,GlobalParams];
 % sample = [1,2,opt];
 % sample = A(ceil(rand*height(A)),:);
+
+% Extracts the robot pose set
 poses = extPoses(robots);
 
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+
+%Draws lines between each robot and its respective line to visually
+%represent the example allocation.
 for i = objs:numRobots
     line([robots{i}.pose(1),objects(sample(i),1)],...
          [robots{i}.pose(2),objects(sample(i),2)],...
          'color','black','LineWidth',1);
 end
-env.Poses =  poses;
-env(1:numRobots, poses, objects);
 
-
-%% Bar Chart
-% Adds fixed pos robots to results
-fixed = ones(runs,1)*(1:objs);
-% tmp = histcounts(sample,'Normalization','probability');
-tmp = histcounts([fixed,GlobalMaxes],'Normalization','probability');
+%% Bar chart comparing average allocation across all runs to desired allocation
+ 
+%Counts the total number of robots allocated to each task, then normalises
+%the results
+tmp = histcounts(A,'Normalization','probability');
 tmp = tmp*100;
-visE = tmp;
+ 
+%Finds the visual error between the bars (not necessarily equal to
+%MAE)
+visE = abs(tmp(1)-tmp(2))/2;
+ 
+%X axis for the bar chart 
 x = 1:length(tmp);
-
+ 
+%Y axis for the bar chart
 for i =1:length(tmp)
     y(i,1) = tmp(i);
     y(i,2) = 100*(qualities(i)/ sum(qualities));
 end
-
+ 
+% Showing the bar chart
 figure(2);
+
 tmp = bar(x,y,0.75);
-tmp(1).FaceColor = [0 1 1];
-tmp(2).FaceColor = [0 1 0];
+ 
+%Sets the colour for the obtained distribution (cyan)
+tmp(1).FaceColor = [0 1 1]; 
+ 
+%Sets the colour for the obtained distribution (green)
+tmp(2).FaceColor = [0 1 0]; 
+ 
+%Sets up the legend labels for the bar chart
 set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+ 
+%Axes labels for the bar chart
 xlabel('Target');
 ylabel('Number of robots (%)');
-ylim([0 70]);
-
+ylim([0 50]); %0.7 1, 0.4 2, 0.5 3
+ 
+% Showing the legend for the bar chart
 legend('Location','northwest')
 %%
-% figure(3)
-% plot(coeffs)
-% %%
+
+%% Calculation of results
+ 
+% %Calculating the maximum and average MAE
 % maxE = max(mae);
 % avgE = mean(mae);
-% 
-% %% Output of results
-% format short
+%  
+% %Displaying the average and maximum mae alongside total distance
+% %Note that mae is shown in % and distance is shown in m.
 % disp('   AvgE(%)   MaxE(%)   Avg Dist');
-% % disp('    AvgE      MaxE');
-% disp([100*avgE 100*maxE (mean(allDists)/10)]);
+% disp([100*avgE 100*maxE (mean(dists))]);
+
 % 
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation

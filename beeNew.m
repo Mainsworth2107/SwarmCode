@@ -1,3 +1,5 @@
+%% ABC + Swapping method, kept for reference.
+
 function sol = beeNew(A,i,neighbour)
     test = A(i,:);
     global allObjs;

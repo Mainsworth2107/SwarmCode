@@ -1,24 +1,19 @@
-function [sol] = shiftSol(A,FoodNumber,i)
+%% Function that mananges parameter changes for potential solutions
 
-    %/*A randomly chosen solution is used in producing a mutant solution of the solution i*/
-    
-    %Neighbour represnts another whole solution (food source)
-    rSol = fix(rand*(FoodNumber))+1;
-    neighbour=fix(rand*(FoodNumber))+1;
-    
+function [sol] = shiftSol(A,FoodNumber,i)
+    %rSol = fix(rand*(FoodNumber))+1;
+    %Represents potential solution 
     Method = i;
     
-    %/*Randomly selected solution must be different from the solution i*/        
+    %Neighbour represnts another solution(food source) within the space.
+    neighbour=fix(rand*(FoodNumber))+1;    
+
+    %Randomly selected neighbor solution must be different from the solution i*/        
     while(neighbour==Method)
         neighbour=fix(rand*(FoodNumber))+1;
     end
 
-   %Assumption that bounds are between -x and x ((rand-0.5)*2 statement)
-   %  /*v_{ij}=x_{ij}+\phi_{ij}*(x_{kj}-x_{ij}) */
-   
-   % Check this
-%    sol = beeSwap(A,i,Param2Change,neighbour);
+    %Alters the input solution according to single point swapping
 %     sol = beeNew(A,i,neighbour);    
     sol = beeOld(A,Method,neighbour);    
-
 end

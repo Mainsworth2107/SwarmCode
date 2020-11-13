@@ -30,9 +30,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-objs = 2;                       % Number of Targets
-qualities = [0.5,0.5];          % Target qualities (q)
-preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+% objs = 2;                       % Number of Targets
+% qualities = [0.5,0.5];          % Target qualities (q)
+% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -40,9 +40,9 @@ preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
  
 % Setup 3
-% objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -208,6 +208,7 @@ end
  
 % Showing the bar chart
 figure(2);
+
 tmp = bar(x,y,0.75);
  
 %Sets the colour for the obtained distribution (cyan)
@@ -222,7 +223,7 @@ set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
 %Axes labels for the bar chart
 xlabel('Target');
 ylabel('Number of robots (%)');
-ylim([0 70]);
+ylim([0 50]); %0.7 1, 0.4 2, 0.5 3
  
 % Showing the legend for the bar chart
 legend('Location','northwest')
@@ -238,20 +239,18 @@ avgE = mean(mae);
 disp('   AvgE(%)   MaxE(%)   Avg Dist');
 disp([100*avgE 100*maxE (mean(dists))]);
 
-% O = zeros(runs,objs);
-% for i = 1:height(A)
-%     O(i,:) = histcounts(A(i,:));
-% end
-disp('Average time per run (ms)');
-times = 1000*times;
-disp(mean(times));
-
-disp('Average time per robot (μs)');
-disp(1e3*(mean(times)/numRobots))
-
-
+O = zeros(runs,objs);
+for i = 1:height(A)
+    O(i,:) = histcounts(A(i,:));
+end
+% disp('Average time per run (ms)');
+% times = 1000*times;
+% disp(mean(times));
+% 
+% disp('Average time per robot (μs)');
+% disp(1e3*(mean(times)/numRobots))
 
 % Writing results to csv for validation
-out = [floor(O),mae',dists',times'];
+out = [floor(O),mae']; %,dists',times'];
 % out = [floor(A(1,:)),mae(1)',dists(1)'];
 writematrix((out),'Test.csv');

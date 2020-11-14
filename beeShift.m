@@ -1,7 +1,7 @@
 %% Function that performs one point swapping on potential solutions
-
-function sol = beeOld(A,i,neighbour)
-    test = A(i,:); %Test variable to snsure swapping is being perfomred correctly
+ 
+function sol = beeShift(A,i,neighbour)
+    test = A(i,:); %Test variable to ensure swapping is being performed correctly
     global allObjs;
     objs = height(allObjs);
     
@@ -13,18 +13,18 @@ function sol = beeOld(A,i,neighbour)
 %     while(idxs(1) == idxs(2))
 %        idxs(2) = floor(rand*length(A(i,:)))+1;
 %        cut = cut + 1;
-%        %Statement for saftey only
+%        %Statement for safety only
 %        if(cut > 100)
 %            break;
 %        end
 %     end
     
-    % Determines the maginitude change of the variable by looking at the neighbouring
-    % solution as in continous ABC.
+    % Determines the magnitude change of the variable by looking at the neighbouring
+    % solution as in continuous ABC.
    
-    %Unlike cintinous ABC, the only useful information obtainable for this
-    %sepcific cas is if the values are differnt, and their numberical
-    %differnce has no bearing when swapping.
+    %Unlike continuous ABC, the only useful information obtainable for this
+    %specific case is if the values are different, and their numerical
+    %difference has no bearing when swapping.
     
     %As such a swap will occur any time the variables differ.
     %(this will lead to convergence)
@@ -36,7 +36,5 @@ function sol = beeOld(A,i,neighbour)
             end
         end
     end
-    
-
-    
     sol = A(i,:);
+end

@@ -1,3 +1,5 @@
+%% Class that stores the poses of each robot
+ 
 classdef robot < handle
     
     %% Public Properties
@@ -8,7 +10,7 @@ classdef robot < handle
     
     %% Public Methods
     methods
-        %Initaliser
+        %Initialiser
         function obj = robot(N, M)
             obj.pose = N;
             obj.id = M;

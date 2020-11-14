@@ -1,3 +1,4 @@
+%% Function that manages parameter changes for potential solutions
 function [sol] = shiftSol(A,FoodNumber,i)
 
     %/*A randomly chosen solution is used in producing a mutant solution of the solution i*/
@@ -6,16 +7,12 @@ function [sol] = shiftSol(A,FoodNumber,i)
     rSol = fix(rand*(FoodNumber))+1;
     neighbour=fix(rand*(FoodNumber))+1;
 
-    %/*Randomly selected solution must be different from the solution i*/        
+    %Randomly selected solution must be different from the solution i        
     while(neighbour==rSol)
         neighbour=fix(rand*(FoodNumber))+1;
     end
 
-   %Assumption that bounds are between -x and x ((rand-0.5)*2 statement)
-   %  /*v_{ij}=x_{ij}+\phi_{ij}*(x_{kj}-x_{ij}) */
-   
-   % Check this
-%    sol = beeSwap(A,i,Param2Change,neighbour);
+    %Alters the input solution according to single point swapping
+%     sol = beeNew(A,i,neighbour);    
     sol = beeNew(A,rSol,neighbour);    
-
 end

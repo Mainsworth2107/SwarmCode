@@ -1,3 +1,5 @@
+%% Function that returns the fitness of a given allocation
+ 
 function X = beeFit(FoodNumber,A,robots,qualities,mode)
     %Fitness calclation (for each robot)
     global allObjs
@@ -5,52 +7,55 @@ function X = beeFit(FoodNumber,A,robots,qualities,mode)
     X = zeros(1,FoodNumber);
     
     for i = 1:FoodNumber
-        %Count and dist are the in loop verisons of counts and dists
+        %Count and dist are used to find mae in loop
         
-        counts = zeros(1,objs); %Allocation counts for each object in the space
-        dist = 0;
-        % Count allocations to each robot
+        counts = zeros(1,objs); %Allocation counts for each object 
+        dist = 0; %Total distance travelled by the robots
+        
+        % Count allocations for each robot (excluding pre allocated ones)
         for k = 1:objs
             counts(k) = length(find( A(i,:)==k ));
         end
-
         
+        %Adding pre allocated robots to counts and normalising
+        counts = counts + 1; 
+        counts = counts ./ (sum(counts));
+        
+        %Calculate the total distance travelled by all robots. (excluding
+        %pre allocated ones)
         for k = 1:length(A(i,:)) %First objs robots ignored
             dist = dist + distEu(robots{k+objs}.pose(1:2), allObjs(A(i,k),1:2) );
         end
-        
+ 
         %Averages the distance across all robots
         dist = dist / length(robots);
         
-        counts = counts + 1; %Adding static robots;
-        counts = counts ./ (sum(counts));
-        
-        %error is the in loop error
+        %Finds the MAE for the input allocation
         Error = (1/objs) * sum(abs(qualities - counts));
         
-        %As defined in a follow up paper fitness = 1/(mae*dist)
-
-        %To avoid infs everywhere, the MAE is given a statistically
-        %insignificant bais (minimum for 100 robots is 0.01 (1000*bias)).
-
+        %As defined in a follow up paper: fitness = 1/(mae*dist)
+        % [Distributed Bees Algorithm Parameters Optimization for 
+        % a Cost Efficient Target Allocation in Swarms of Robots]
+        
+        %To avoid division by zero, the MAE is given a statistically
+        %insignificant bias, currently set to numRobots/1000.
+ 
         %mae is of greater importance than distance because it has a smaller
-        %(larger inverse) order of magnitude. This is good as we don't really
-        %care about distance until MAE is zero.
+        %(larger inverse) order of magnitude. 
         
         switch(mode)
-            case 0
-%                 X(i) = 1 / (1+ ( dist/(Error+1)) );
-                X(i) = (1/  ((Error + (0.01/length(robots)) ) * dist ) );
+            case 0 %Case 0 is the standard fitness calculation
+                %0.001 was original bias, but 0.1 shows distance optimising
+                %in non mae solutions
+                X(i) = (1/  ((Error + (0.1/length(robots)) ) * dist ) );
 %                     X(i) = (1/  ((Error +1) * dist ) );
-            case 1
+            
+            case 1 % Cases 1 and 2 return error and distance respectively 
+                   % for testing and output purposes
                 X(i) = Error;
             case 2
                 X(i) = dist;
         end
-        
-%         X(i) = (1/  (Error + (0.001/length(robots)) ));
-%           X(i) = 1/dist;
-%          X(i) = (1/ ((Error) * dist)); %Produces infs
     end
     
 end

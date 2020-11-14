@@ -13,8 +13,8 @@
 flush
 numRobots = 20; %Initialises the number of robots.
  
-Coeff = 2; %Coefficient that controls total ABC iterations
-runs = 1; % Total runs of the algorithm
+Coeff = 6; %Coefficient that controls total ABC iterations
+runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -143,7 +143,8 @@ limit = 100;
 D = numRobots-objs; %The number of parameters of the problem to be optimized
  
 %Assumption that required iterations are proportional to problem size
-maxCycle = Coeff*D; 
+% maxCycle = Coeff*D; 
+maxCycle = Coeff*numRobots; 
  
 %Problem is bounded by the number of objects in the area
 ub = ones(1,D)*objs; %Upper bounds of the parameters. 
@@ -159,26 +160,26 @@ coeffs = zeros(1,runs);
  
 %Fitnesses and dist for each developed solution (in loop)
 fitness = zeros(1,FoodNumber);
-dists = fitness;
  
 mae = zeros(1,runs); %MAE for each run
-allDists = mae;      %Total distance for each run
- 
+dists = mae;      %Total distance for each run
+maxRobs = {};
+
+%Used to enforce the bounds for the probelm space
+Range = repmat((ub-lb),[FoodNumber 1]);
+Lower = repmat(lb, [FoodNumber 1]);
+    
+
 %% Main ABC Algorithm Loop.
 for i = 1:runs
     
     %% Initialisation of a run
-    % 10 possible solutions
-    
-    %     Method 1: random
-    
+    % 10 possible solutions used
+
+%     tests = floor(FoodNumber ./ 2);
+
     %Randomly initialises the possible solutions (A), accounting for probelm
     %bounds
-    Range = repmat((ub-lb),[FoodNumber 1]);
-    Lower = repmat(lb, [FoodNumber 1]);
-    
-%     tests = floor(FoodNumber ./ 2);
- 
     A = (rand(FoodNumber,D) .* Range) + Lower;
       
     %Uses rounding to ensure all possible solutions consist of whole numbers
@@ -265,7 +266,7 @@ for i = 1:runs
             coeffs(i) = iter;
             gTrails = 0;
         end
-        dists(iter) = GlobalMax; %Records how the global maximum progresses
+        
         
         %% Scout Bee Phase
         
@@ -289,10 +290,10 @@ for i = 1:runs
             A(ind,:)=sol;
             fitness(ind)=FitnessSol;
         end
-        
-        if(mod(iter,Coeff) == 0)
-            sampleFits(iter/Coeff,:) = fitness;
-        end
+%         
+%         if(mod(iter,Coeff) == 0)
+%             sampleFits(iter/Coeff,:) = fitness;
+%         end
  
         % Record all ten fitness values for plotting results.
         sampleFits(iter,:) = fitness;
@@ -305,11 +306,16 @@ for i = 1:runs
     GlobalMaxes(i,:) = GlobalParams;
     FitMaxes(i) = GlobalMax;
     
+    if(FitMaxes(i) == max(FitMaxes))
+        maxGMax = i;
+        maxRobs = robots;
+    end
+    
     %Records the mae for each loop
     mae(i) = beeFit(1,GlobalParams,robots,qualities,1);
     
     %Record the total distance for each loop
-    allDists(i) = beeFit(1,GlobalParams,robots,qualities,2);
+    dists(i) = beeFit(1,GlobalParams,robots,qualities,2);
     if(i < (runs))
         robots = initBots(robots,objs,diffX,diffY); %Sets a New robots array
     end
@@ -318,7 +324,7 @@ for i = 1:runs
     
     waitfor(0.01)
 end
-    
+%%    
 % Plots how the fitness for all 10 potential solutions evolved through the
 % last run.
 figure(3)
@@ -326,10 +332,14 @@ plot(sampleFits)
  
 % Extends the final allocation set to include static robots for plotting.
 sample = [1:objs,GlobalMaxes(end,:)];
- 
+
+% maxGMax analysis
+% sample = [1:objs,GlobalMaxes(maxGMax,:)]; 
+% robots = maxRobs;
  
 %% Producing an example visualisation
 % %Initialising main environment visualisation
+figure(1)
 poses = extPoses(robots);
 env.Poses =  poses;
 env(1:numRobots, poses, objects);
@@ -365,7 +375,7 @@ end
  
 %Counts the total number of robots allocated to each task, then normalises
 %the results
-tmp = histcounts(A,'Normalization','probability');
+tmp = histcounts(sample,'Normalization','probability');
 tmp = tmp*100;
  
 %Finds the visual error between the bars (not necessarily equal to
@@ -405,14 +415,14 @@ legend('Location','northwest')
  
 %% Calculation of results
  
-% %Calculating the maximum and average MAE
-% maxE = max(mae);
-% avgE = mean(mae);
-%  
-% %Displaying the average and maximum mae alongside total distance
-% %Note that mae is shown in % and distance is shown in m.
-% disp('   AvgE(%)   MaxE(%)   Avg Dist');
-% disp([100*avgE 100*maxE (mean(dists))]);
+%Calculating the maximum and average MAE
+maxE = max(mae);
+avgE = mean(mae);
+ 
+%Displaying the average and maximum mae alongside total distance
+%Note that mae is shown in % and distance is shown in m.
+disp('   AvgE(%)   MaxE(%)   Avg Dist');
+disp([100*avgE 100*maxE (mean(dists))]);
  
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];

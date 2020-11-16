@@ -54,5 +54,5 @@ function [X,Y] = DBAFit(poseIn)
         end
     end
     X = A;
-    Y = sum(costs);
+    Y = costs(A);
 end

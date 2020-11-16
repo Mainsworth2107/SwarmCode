@@ -38,7 +38,6 @@ A = zeros(1,numRobots); %Calculated allocation
 % objs = 4;
 % qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-
  
 % Setup 3
 % objs = 4;

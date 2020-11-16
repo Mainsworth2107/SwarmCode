@@ -54,7 +54,7 @@ function X = beeFit(FoodNumber,A,robots,qualities,mode)
                    % for testing and output purposes
                 X(i) = Error;
             case 2
-                X(i) = dist;
+                X(i) = dist * length(robots);
         end
     end
     

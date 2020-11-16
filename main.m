@@ -20,32 +20,42 @@ env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
  
 % Limits of visualisation axes
-% limX = [-1, 1];
-% limY = [-1.4 1.4]; 
+limX = [-1, 1];
+limY = [-1.4 1.4]; 
  
-limX = [-1.4 1.4];
-limY = [-1, 1];
+% limX = [-1.4 1.4];
+% limY = [-1, 1];
  
 A = zeros(1,numRobots); %Calculated allocation
  
 %% Selecting testing scenario
  
 % Setup 1
-% objs = 2;                       % Number of Targets
-% qualities = [0.5,0.5];          % Target qualities (q)
-% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+objs = 2;                       % Number of Targets
+qualities = [0.5,0.5];          % Target qualities (q)
+preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
 % qualities = 0.25*ones(1,4);
-% % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+
+%Setup 4
+% objs = 10;
+% qualities = 0.1*ones(1,10);
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+
+%Setup 5
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -89,8 +99,11 @@ env.objectMarkers = objstr;
 robots = cell(numRobots,1);
  
 %Arena dimensions
-diffX = 2.125;
-diffY = 1.5; 
+diffX = 1.5;
+diffY = 2.125; 
+
+% diffX = 2.125;
+% diffY = 1.5; 
  
 %Function to initialise all robots
 robots = initBots(robots,objs,diffX,diffY); 
@@ -180,6 +193,7 @@ for i = 1:runs
 
     %Randomly initialises the possible solutions (A), accounting for probelm
     %bounds
+    tic;
     A = (rand(FoodNumber,D) .* Range) + Lower;
       
     %Uses rounding to ensure all possible solutions consist of whole numbers
@@ -301,7 +315,7 @@ for i = 1:runs
     end
     
     %% End of Loop Recording
-    
+    times(i) = toc;
     %Saves the overall maximum recording and parameters
     GlobalMaxes(i,:) = GlobalParams;
     FitMaxes(i) = GlobalMax;
@@ -326,9 +340,9 @@ for i = 1:runs
 end
 %%    
 % Plots how the fitness for all 10 potential solutions evolved through the
-% last run.
-figure(3)
-plot(sampleFits)
+% % last run.
+% figure(3)
+% plot(sampleFits)
  
 % Extends the final allocation set to include static robots for plotting.
 sample = [1:objs,GlobalMaxes(end,:)];
@@ -339,92 +353,92 @@ sample = [1:objs,GlobalMaxes(end,:)];
  
 %% Producing an example visualisation
 % %Initialising main environment visualisation
-figure(1)
-poses = extPoses(robots);
-env.Poses =  poses;
-env(1:numRobots, poses, objects);
-xlim(limX);   % Without this, axis resizing can slow things down
-ylim(limY);  
- 
-%Sets object labels
-for i = 1:objs
-    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-end
- 
-figure(1)
-% sample = [1:objs,GlobalParams];
-% sample = [1,2,opt];
-% sample = A(ceil(rand*height(A)),:);
- 
-% Extracts the robot pose set
-poses = extPoses(robots);
- 
-%Draw the example robot positions.
-env.Poses =  poses;
-env(1:numRobots, poses, objects);
- 
-%Draws lines between each robot and its respective line to visually
-%represent the example allocation.
-for i = objs:numRobots
-    line([robots{i}.pose(1),objects(sample(i),1)],...
-         [robots{i}.pose(2),objects(sample(i),2)],...
-         'color','black','LineWidth',1);
-end
- 
-%% Bar chart comparing average allocation across all runs to desired allocation
- 
-%Counts the total number of robots allocated to each task, then normalises
-%the results
-tmp = histcounts(sample,'Normalization','probability');
-tmp = tmp*100;
- 
-%Finds the visual error between the bars (not necessarily equal to
-%MAE)
-visE = abs(tmp(1)-tmp(2))/2;
- 
-%X axis for the bar chart 
-x = 1:length(tmp);
- 
-%Y axis for the bar chart
-for i =1:length(tmp)
-    y(i,1) = tmp(i);
-    y(i,2) = 100*(qualities(i)/ sum(qualities));
-end
- 
-% Showing the bar chart
-figure(2);
- 
-tmp = bar(x,y,0.75);
- 
-%Sets the colour for the obtained distribution (cyan)
-tmp(1).FaceColor = [0 1 1]; 
- 
-%Sets the colour for the obtained distribution (green)
-tmp(2).FaceColor = [0 1 0]; 
- 
-%Sets up the legend labels for the bar chart
-set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
- 
-%Axes labels for the bar chart
-xlabel('Target');
-ylabel('Number of robots (%)');
-ylim([0 50]); %0.7 1, 0.4 2, 0.5 3
- 
-% Showing the legend for the bar chart
-legend('Location','northwest')
- 
-%% Calculation of results
- 
-%Calculating the maximum and average MAE
-maxE = max(mae);
-avgE = mean(mae);
- 
-%Displaying the average and maximum mae alongside total distance
-%Note that mae is shown in % and distance is shown in m.
-disp('   AvgE(%)   MaxE(%)   Avg Dist');
-disp([100*avgE 100*maxE (mean(dists))]);
+% figure(1)
+% poses = extPoses(robots);
+% env.Poses =  poses;
+% env(1:numRobots, poses, objects);
+% xlim(limX);   % Without this, axis resizing can slow things down
+% ylim(limY);  
+%  
+% %Sets object labels
+% for i = 1:objs
+%     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+% end
+%  
+% figure(1)
+% % sample = [1:objs,GlobalParams];
+% % sample = [1,2,opt];
+% % sample = A(ceil(rand*height(A)),:);
+%  
+% % Extracts the robot pose set
+% poses = extPoses(robots);
+%  
+% %Draw the example robot positions.
+% env.Poses =  poses;
+% env(1:numRobots, poses, objects);
+%  
+% %Draws lines between each robot and its respective line to visually
+% %represent the example allocation.
+% for i = objs:numRobots
+%     line([robots{i}.pose(1),objects(sample(i),1)],...
+%          [robots{i}.pose(2),objects(sample(i),2)],...
+%          'color','black','LineWidth',1);
+% end
+%  
+% %% Bar chart comparing average allocation across all runs to desired allocation
+%  
+% %Counts the total number of robots allocated to each task, then normalises
+% %the results
+% tmp = histcounts(sample,'Normalization','probability');
+% tmp = tmp*100;
+%  
+% %Finds the visual error between the bars (not necessarily equal to
+% %MAE)
+% visE = abs(tmp(1)-tmp(2))/2;
+%  
+% %X axis for the bar chart 
+% x = 1:length(tmp);
+%  
+% %Y axis for the bar chart
+% for i =1:length(tmp)
+%     y(i,1) = tmp(i);
+%     y(i,2) = 100*(qualities(i)/ sum(qualities));
+% end
+%  
+% % Showing the bar chart
+% figure(2);
+%  
+% tmp = bar(x,y,0.75);
+%  
+% %Sets the colour for the obtained distribution (cyan)
+% tmp(1).FaceColor = [0 1 1]; 
+%  
+% %Sets the colour for the obtained distribution (green)
+% tmp(2).FaceColor = [0 1 0]; 
+%  
+% %Sets up the legend labels for the bar chart
+% set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+%  
+% %Axes labels for the bar chart
+% xlabel('Target');
+% ylabel('Number of robots (%)');
+% ylim([0 50]); %0.7 1, 0.4 2, 0.5 3
+%  
+% % Showing the legend for the bar chart
+% legend('Location','northwest')
+%  
+% %% Calculation of results
+%  
+% %Calculating the maximum and average MAE
+% maxE = max(mae);
+% avgE = mean(mae);
+%  
+% %Displaying the average and maximum mae alongside total distance
+% %Note that mae is shown in % and distance is shown in m.
+% disp('   AvgE(%)   MaxE(%)   Avg Dist');
+% disp([100*avgE 100*maxE (mean(dists))]);
  
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
-% %% Writing results to csv for validation
-% writematrix((out),'Test.csv');
+% %% Writing results to csv for validation   1000*
+writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');

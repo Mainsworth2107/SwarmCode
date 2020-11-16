@@ -16,7 +16,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 200; %Initialises the number of robots.
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Disables robot pathing 
@@ -38,11 +38,22 @@ A = zeros(1,numRobots); %Calculated allocation
 % objs = 4;
 % qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+
+%Setup 4
+% objs = 10;
+% qualities = 0.1*ones(1,10);
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+
+%Setup 5
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -90,15 +101,15 @@ diffX = 1.5;
 diffY = 2.125;
  
 %Function to initialise all robots
-% robots = initBots(robots,objs,diffX,diffY); 
-pain = load('pain.mat');
-pain = pain.pain;
+robots = initBots(robots,objs,diffX,diffY); 
+% pain = load('pain.mat');
+% pain = pain.pain;
 
 % Allows for a sample robot position set to be loaded for specific tests
 % save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
-robots = pain{1}; 
+% robots = pain{1}; 
 %% Setting up the visualisation
  
 %Extracts the robot poses
@@ -125,10 +136,10 @@ for i = 1:objs
 end
  
 %% Running the algorithm
-master = 500;
-pain = load('pain.mat');
-pain = pain.pain;
-for h = 1:master
+% master = 500;
+% pain = load('pain.mat');
+% pain = pain.pain;
+% for h = 1:master
 
 runs = 50; %Total scenarios (robot position sets) to be tested
  
@@ -137,7 +148,7 @@ mae = zeros(1,runs); % Mean absolute error.
 times = mae;
 dists = mae;
 for i = 1:runs
-    robots = pain{i};
+%     robots = pain{i};
     tic;
     counts = zeros(1,objs); %Counts of each allocation for calculating MAE
     
@@ -174,7 +185,7 @@ for i = 1:runs
     
     %If not the final run, initialises a new robot position set (to test for consistency)
     if (i < runs)
-%         robots = initBots(robots,objs,diffX,diffY);
+        robots = initBots(robots,objs,diffX,diffY);
 %         robots = pain{i+1}; 
     end
 end
@@ -244,13 +255,13 @@ end
 maxE = max(mae);
 avgE = mean(mae);
 
-O(h,:) = [avgE,maxE];
+% O(h,:) = [avgE,maxE];
 % if O(h,1) == 0.0343
 %     break;
 % else
 %     pain = {};
 % end
-end
+% end
 %%
 %Displaying the average and maximum mae alongside total distance
 %Note that mae is shown in % and distance is shown in m.
@@ -272,4 +283,5 @@ end
 % Writing results to csv for validation
 % out = [floor(O),mae']; %,dists',times'];
 % out = [floor(A(1,:)),mae(1)',dists(1)'];
-writematrix([O],'Test.csv');
+
+writematrix([((objs / 2)*numRobots*mae'),dists',(1000*times')],'Test.csv');

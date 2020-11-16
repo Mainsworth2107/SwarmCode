@@ -90,7 +90,7 @@ diffX = 1.5;
 diffY = 2.125;
  
 %Function to initialise all robots
-% robots = initBots(robots,objs,diffX,diffY); 
+robots = initBots(robots,objs,diffX,diffY); 
 % pain = load('pain.mat');
 % pain = pain.pain;
 
@@ -125,11 +125,11 @@ for i = 1:objs
 end
  
 %% Running the algorithm
-master = 500;
-pain = cell(1,50);
-for h = 1:master
-pain = load('pain.mat');
-pain = pain.pain;
+% master = 500;
+% pain = load('pain.mat');
+% pain = pain.pain;
+% for h = 1:master
+
 runs = 50; %Total scenarios (robot position sets) to be tested
  
 %Initialises output variables
@@ -137,7 +137,7 @@ mae = zeros(1,runs); % Mean absolute error.
 times = mae;
 dists = mae;
 for i = 1:runs
-%     pain{i} = robots;
+%     robots = pain{i};
     tic;
     counts = zeros(1,objs); %Counts of each allocation for calculating MAE
     
@@ -174,8 +174,8 @@ for i = 1:runs
     
     %If not the final run, initialises a new robot position set (to test for consistency)
     if (i < runs)
-%         robots = initBots(robots,objs,diffX,diffY);
-        robots = pain{i+1}; 
+        robots = initBots(robots,objs,diffX,diffY);
+%         robots = pain{i+1}; 
     end
 end
 
@@ -244,13 +244,13 @@ end
 maxE = max(mae);
 avgE = mean(mae);
 
-O(h,:) = [avgE,maxE];
+% O(h,:) = [avgE,maxE];
 % if O(h,1) == 0.0343
 %     break;
 % else
 %     pain = {};
 % end
-end
+% end
 %%
 %Displaying the average and maximum mae alongside total distance
 %Note that mae is shown in % and distance is shown in m.
@@ -272,4 +272,5 @@ end
 % Writing results to csv for validation
 % out = [floor(O),mae']; %,dists',times'];
 % out = [floor(A(1,:)),mae(1)',dists(1)'];
-writematrix([O,mae'],'Test.csv');
+
+% writematrix([(200*mae'),],'Test.csv');

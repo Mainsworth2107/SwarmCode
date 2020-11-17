@@ -11,7 +11,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 200; %Initialises the number of robots.
+numRobots = 60; %Initialises the number of robots.
  
 Coeff = 4; %Coefficient that controls total ABC iterations
 runs = 50; % Total runs of the algorithm
@@ -31,9 +31,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-% objs = 2;                       % Number of Targets
-% qualities = [0.5,0.5];          % Target qualities (q)
-% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+objs = 2;                       % Number of Targets
+qualities = [0.5,0.5];          % Target qualities (q)
+preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -53,9 +53,9 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
 %Setup 5
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object

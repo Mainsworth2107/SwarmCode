@@ -11,7 +11,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 20; %Initialises the number of robots.
  
 Coeff = 6; %Coefficient that controls total ABC iterations
 runs = 1; % Total runs of the algorithm
@@ -31,9 +31,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-% objs = 2;                       % Number of Targets
-% qualities = [0.5,0.5];          % Target qualities (q)
-% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+objs = 2;                       % Number of Targets
+qualities = [0.5,0.5];          % Target qualities (q)
+preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -42,10 +42,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 %Setup 4
 % objs = 10;
@@ -108,7 +108,7 @@ diffY = 2.125;
 robots = initBots(robots,objs,diffX,diffY); 
  
 % Allows for a sample robot position set to be loaded for specific tests
-% save('robots.mat','robots'); 
+save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
 %% Setting up the visualisation
@@ -195,8 +195,7 @@ for i = 1:runs
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
     A = (rand(FoodNumber,D) .* Range) + Lower;
-    A = A(:,objs+1:end);
-
+    
 
 %     Method 2: DBA
  

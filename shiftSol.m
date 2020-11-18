@@ -6,13 +6,15 @@ function [sol] = shiftSol(A,FoodNumber,i)
     %Neighbour represnts another whole solution (food source)
     rSol = fix(rand*(FoodNumber))+1;
     neighbour=fix(rand*(FoodNumber))+1;
-
+    
+    method = i;
+    
     %Randomly selected solution must be different from the solution i        
-    while(neighbour==rSol)
+    while(neighbour==method)
         neighbour=fix(rand*(FoodNumber))+1;
     end
 
     %Alters the input solution according to single point swapping
 %     sol = beeNew(A,i,neighbour);    
-    sol = beeNew(A,rSol,neighbour);    
+    sol = beeShift(A,method,neighbour);    
 end

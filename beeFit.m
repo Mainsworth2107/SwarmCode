@@ -47,7 +47,8 @@ function X = beeFit(FoodNumber,A,robots,qualities,mode)
             case 0 %Case 0 is the standard fitness calculation
                 %0.001 was original bias, but 0.1 shows distance optimising
                 %in non mae solutions
-                X(i) = (1/  ((Error + (0.1/length(robots)) ) * dist ) );
+%                 X(i) = (1/  ((Error + (0.1/length(robots)) ) * dist ) );
+                X(i) = (1/  ((Error + (0.001/length(robots)) ) * dist ) );
 %                     X(i) = (1/  ((Error +1) * dist ) );
             
             case 1 % Cases 1 and 2 return error and distance respectively 

@@ -11,10 +11,10 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 20; %Initialises the number of robots.
+numRobots = 100; %Initialises the number of robots.
  
-Coeff = 4; %Coefficient that controls total ABC iterations
-runs = 50; % Total runs of the algorithm
+Coeff = 6; %Coefficient that controls total ABC iterations
+runs = 1; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -31,9 +31,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-objs = 2;                       % Number of Targets
-qualities = [0.5,0.5];          % Target qualities (q)
-preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+% objs = 2;                       % Number of Targets
+% qualities = [0.5,0.5];          % Target qualities (q)
+% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -53,9 +53,9 @@ preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
 %Setup 5
-% objs = 10;
-% qualities = 0.02*[1:1:5,5:1:9];
-% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -115,29 +115,29 @@ robots = initBots(robots,objs,diffX,diffY);
 %This process is slow, so can be skipped to save on processing time with
 %larger problems.
  
-% %Extracts the robot poses
-% poses = extPoses(robots);
-% env.Poses =  poses;
-%  
-% %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
-% env(1:numRobots, poses, objects);
-%  
-% %Draws the robot arena bounderies.
-% line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
-% line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
-% line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-% line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-%  
-% % Ensure that the visualisations axes remain fixed. 
-% % Without this, axis resizing can slow things down
-% xlim(limX);   
-% ylim(limY);
-%  
-% axis equal 
-% % Sets object labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
+%Extracts the robot poses
+poses = extPoses(robots);
+env.Poses =  poses;
+ 
+%Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
+env(1:numRobots, poses, objects);
+ 
+%Draws the robot arena bounderies.
+line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
+line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
+line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+ 
+% Ensure that the visualisations axes remain fixed. 
+% Without this, axis resizing can slow things down
+xlim(limX);   
+ylim(limY);
+ 
+axis equal 
+% Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
 
 
 %% ABC Algorithm Setup
@@ -223,51 +223,49 @@ for i = 1:runs
     % Currnetly follows on from a set of DBA solutions
     for h = tests+1:FoodNumber
 %     for h = 1:FoodNumber
-        %Finds the distance from every robot to each object
-        Dists = zeros(numRobots,objs);
-        for j = 1:numRobots
+        %Finds the distance from every non static robot to each object
+        Dists = zeros(numRobots-objs,objs);
+        for j = objs+1:numRobots
             for k = 1:objs
-                Dists(j,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
+                Dists(j-objs,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
             end
-            Dists(j,objs+1) = j;
+            Dists(j-objs,objs) = j-objs;
         end
         
         %Sorts the distance array according to distance to object h
         Dists = sortrows(Dists);
 
         %Initalises values for greedy loop
-        left = numRobots;
         On = 0;
-        qualDyn = qualities; %Saves a copy of qaulities
         
         % Greedy Allocation Loop
         for j = 1:objs
+
+            waitfor(0.01)
+
             %Uses first come first served allocation (objects)
-            props = round(left * qualities(1));
-            
+%             props = round(left * qualities(1));
+            %As we want one less duee to statics
+            props = round(numRobots * qualities(j)) - 1;
             %Allocates the desired number of closest robots
-            A(h,Dists( (On + 1):(On+props) ,end)') = j;
-            
+            try
+                A(h,Dists( (On + 1):(On+props) ,end)') = j;
+            catch
+                waitfor(0.01)
+            end
             %Removes allocated robots from stack
             Dists = Dists(props+1:end,2:end);
             Dists = sortrows(Dists);
-            
-            %Re normalises remaining list
-            left = left - props;
-            tmp = qualities(1);
-            qualities = qualities(2:end);
-            qualities = qualities ./ (1-tmp);
         end
-    qualities = qualDyn; %Restores qualities after loop.
     end
-    A = A(:,objs+1:end); %Reintegreate static robots
-    
+    A(tests+1:FoodNumber,:) = [1:objs, A(tests+1:FoodNumber,1:end-objs)]; %Reintegreate static robots
+    A = A(:,objs+1:end); 
     A = round(A); %Rounds allocation to ensure all values are valid
     
     %%
     
     %Uses rounding to ensure all possible solutions consist of whole numbers
-    A = round(A); 
+%     A = round(A); 
     
     %Calculates the fitness values for each possible solution.
     fitness = beeFit(FoodNumber,A,robots,qualities,0);
@@ -360,14 +358,16 @@ for i = 1:runs
         toChange=find(trial==max(trial));
         toChange=toChange(end);
         
+%         Glim = 5;
+        Glim = -1;
         % Global pullup removal (unused atm)
-        if(iter == 3)
+        if(iter == Glim)
             toChange = ind;
         end
         
         % If the maximum trail value is greater than the limit, reset the
         % counter and choose a new solution for that individual.
-        if (trial(toChange)>limit)   %% && ~(toChange==ind)) || (iter==5)
+        if ((trial(toChange)>limit) && ~(toChange==ind)) || (iter==Glim)
             
             %This prevents multiple solutions froma ll being scouted in
             %sequaential loops
@@ -456,40 +456,40 @@ sample = [1:objs,GlobalParams];
 
 
 %% Producing an example visualisation
-% %Initialising main environment visualisation
-% figure(1)
-% poses = extPoses(robots);
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-% xlim(limX);   % Without this, axis resizing can slow things down
-% ylim(limY);  
-%  
-% %Sets object labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
-%  
-% figure(1)
-% % sample = [1:objs,GlobalParams];
-% % sample = [1,2,opt];
-% % sample = A(ceil(rand*height(A)),:);
-%  
-% % Extracts the robot pose set
-% poses = extPoses(robots);
-%  
-% %Draw the example robot positions.
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-%  
-% %Draws lines between each robot and its respective line to visually
-% %represent the example allocation.
-% for i = objs:numRobots
-%     line([robots{i}.pose(1),objects(sample(i),1)],...
-%          [robots{i}.pose(2),objects(sample(i),2)],...
-%          'color','black','LineWidth',1);
-% end
-%  
-%
+%Initialising main environment visualisation
+figure(1)
+poses = extPoses(robots);
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+xlim(limX);   % Without this, axis resizing can slow things down
+ylim(limY);  
+ 
+%Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
+ 
+figure(1)
+% sample = [1:objs,GlobalParams];
+% sample = [1,2,opt];
+% sample = A(ceil(rand*height(A)),:);
+ 
+% Extracts the robot pose set
+poses = extPoses(robots);
+ 
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+ 
+%Draws lines between each robot and its respective line to visually
+%represent the example allocation.
+for i = objs:numRobots
+    line([robots{i}.pose(1),objects(sample(i),1)],...
+         [robots{i}.pose(2),objects(sample(i),2)],...
+         'color','black','LineWidth',1);
+end
+ 
+
 % %% Bar chart comparing average allocation across all runs to desired allocation
 %  
 % %Counts the total number of robots allocated to each task, then normalises

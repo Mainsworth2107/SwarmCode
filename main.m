@@ -42,21 +42,21 @@ A = zeros(1,numRobots); %Calculated allocation
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-% objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
-
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+ 
 %Setup 4
 % objs = 10;
 % qualities = 0.1*ones(1,10);
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
-
+ 
 %Setup 5
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
-
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+ 
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
 colours = objects; %Sets the colour of each object
@@ -93,14 +93,14 @@ env.objectColors = colours;
 env.objectMarkers = objstr;
  
 % Hides robot IDs
-% env.showRobotIds = false;
+env.showRobotIds = false;
 %% Initialises robots and arena
 robots = cell(numRobots,1);
  
 %Arena dimensions
 diffX = 1.5;
 diffY = 2.125; 
-
+ 
 % diffX = 2.125;
 % diffY = 1.5; 
  
@@ -122,7 +122,7 @@ env.Poses =  poses;
 %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
 env(1:numRobots, poses, objects);
  
-%Draws the robot arena bounderies.
+%Draws the robot arena boundaries.
 line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
 line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
 line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
@@ -138,8 +138,8 @@ axis equal
 for i = 1:objs
     text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
 end
-
-
+ 
+ 
 %% ABC Algorithm Setup
  
 FoodNumber = 10; %Number of potential solutions being improved. (fixed at 10)
@@ -175,97 +175,62 @@ fitness = zeros(1,FoodNumber);
 mae = zeros(1,runs); %MAE for each run
 dists = mae;      %Total distance for each run
 maxRobs = {};
-
-%Used to enforce the bounds for the probelm space
+ 
+%Used to enforce the bounds for the problem space
 Range = repmat((ub-lb),[FoodNumber 1]);
 Lower = repmat(lb, [FoodNumber 1]);
-
+ 
 %% Main Loop.
 for i = 1:runs
 % for i = 1:1
-    %% ABC Algortihm
+    %% ABC Algorithm
     % Input is robots
     
-    %% Initalisation
-    % 10 possible solutions
+    %% Initialisation
+    % 10 possible solutions  
+    
+%     Method 1: random
+%     Randomly initialises the possible solutions (A), accounting for problem
+%     bounds
     Range = repmat((ub-lb),[FoodNumber 1]);
     Lower = repmat(lb, [FoodNumber 1]);
+    A = (rand(FoodNumber,D) .* Range) + Lower;
+    A = A(:,objs+1:end);
 
-%     Method 1: random
-%     Randomly initialises the possible solutions (A), accounting for probelm
-%     bounds
-%     A = (rand(FoodNumber,D) .* Range) + Lower;
-    
+
 %     Method 2: DBA
-
-%Uses the DBA algotihm to initalise better solutions to be run through ABC
-%     tests = floor(3*FoodNumber ./ 4);
-
-    tests = FoodNumber - 1; %The number of potential solutions to be produced by DBA
-    
-    A = [];
-    for h = 1:tests %FoodNumber
-        for j = 1:numRobots %DBA Code
-            if(j <= objs) % If on an object, automatically allocate
-                A(h,j) = j;
-            else %Otherwise, use DBA to allocate
-                [P,Q] = newFit(robots{j}.pose);
-                A(h,j) = P;
-            end
-        end
-    end
-%     A = A(:,objs+1:end); %Reintegreate static robots
-
+ 
+%Uses the DBA algorithm to initialise better solutions to be run through ABC
+% %     tests = floor(3*FoodNumber ./ 4);
+%
+%     A = zeros(FoodNumber,numRobots);
+%     tests = FoodNumber - 1; %The number of potential solutions to be produced by DBA
+%     
+%     for h = 1:tests %FoodNumber
+%         for j = 1:numRobots %DBA Code
+%             if(j <= objs) % If on an object, automatically allocate
+%                 A(h,j) = j;
+%             else %Otherwise, use DBA to allocate
+%                 [P,Q] = newFit(robots{j}.pose);
+%                 A(h,j) = P;
+%             end
+%         end
+%     end
+%     A = A(:,objs+1:end); %Reintegrate static robots
+ 
 %   %Method 3: Greedy
-%   Uses a greedy optimiser to produce high fitness inital solutions
-
-    % Corresponds to the total solutions to be initalised greedily
-    % Currnetly follows on from a set of DBA solutions
-    for h = tests+1:FoodNumber
-%     for h = 1:FoodNumber
-        %Finds the distance from every non static robot to each object
-        Dists = zeros(numRobots-objs,objs);
-        for j = objs+1:numRobots
-            for k = 1:objs
-                Dists(j-objs,k) = distEu(robots{j}.pose(1:2),objects(k,1:2));
-            end
-            Dists(j-objs,objs) = j-objs;
-        end
-        
-        %Sorts the distance array according to distance to object h
-        Dists = sortrows(Dists);
-
-        %Initalises values for greedy loop
-        On = 0;
-        
-        % Greedy Allocation Loop
-        for j = 1:objs
-
-            waitfor(0.01)
-
-            %Uses first come first served allocation (objects)
-%             props = round(left * qualities(1));
-            %As we want one less duee to statics
-            props = round(numRobots * qualities(j)) - 1;
-            %Allocates the desired number of closest robots
-            try
-                A(h,Dists( (On + 1):(On+props) ,end)') = j;
-            catch
-                waitfor(0.01)
-            end
-            %Removes allocated robots from stack
-            Dists = Dists(props+1:end,2:end);
-            Dists = sortrows(Dists);
-        end
-    end
-    A(tests+1:FoodNumber,:) = [1:objs, A(tests+1:FoodNumber,1:end-objs)]; %Reintegreate static robots
-    A = A(:,objs+1:end); 
-    A = round(A); %Rounds allocation to ensure all values are valid
-    
-    %%
-    
+%   Uses a greedy optimiser to produce high fitness initial solutions
+ 
+%     %Setup for pure greedy
+%     tests = 0;
+%     A = zeros(D,numRobots);
+%     %Setup end
+%     
+%     %Greedy optimisation is handeled by an external function
+%     A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
+   
     %Uses rounding to ensure all possible solutions consist of whole numbers
-%     A = round(A); 
+    A = round(A); 
     
     %Calculates the fitness values for each possible solution.
     fitness = beeFit(FoodNumber,A,robots,qualities,0);
@@ -369,9 +334,9 @@ for i = 1:runs
         % counter and choose a new solution for that individual.
         if ((trial(toChange)>limit) && ~(toChange==ind)) || (iter==Glim)
             
-            %This prevents multiple solutions froma ll being scouted in
-            %sequaential loops
-            trial = trial - 25;
+            %This prevents multiple solutions from being scouted in
+            %sequential loops
+%             trial = trial - 25;
             
             trial(toChange)=0;
             
@@ -408,7 +373,7 @@ for i = 1:runs
 %         if(mod(iter,Coeff) == 0)
 %             sampleFits(iter/Coeff,:) = fitness;
 %         end
-
+ 
         % Record all ten fitness values for plotting results.
         sampleFits(iter,:) = fitness;
         iter = iter + 1;
@@ -444,17 +409,17 @@ end
 % % last run.
 figure(3)
 plot(sampleFits)
-
+ 
 %Absolute best run analysis
 % Extends the absolute best allocation set to include static robots for plotting.
 % sample = [1:objs,GlobalMaxes(end,:)];
 % robots = maxRobs;
-
+ 
 %Last run analysis
 % Extends the final allocation set to include static robots for plotting.
 sample = [1:objs,GlobalParams];
-
-
+ 
+ 
 %% Producing an example visualisation
 %Initialising main environment visualisation
 figure(1)
@@ -489,7 +454,7 @@ for i = objs:numRobots
          'color','black','LineWidth',1);
 end
  
-
+ 
 % %% Bar chart comparing average allocation across all runs to desired allocation
 %  
 % %Counts the total number of robots allocated to each task, then normalises
@@ -547,4 +512,3 @@ end
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
 % writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');
-

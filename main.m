@@ -16,7 +16,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 200; %Initialises the number of robots.
+numRobots = 20; %Initialises the number of robots.
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Disables robot pathing 
@@ -30,9 +30,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-% objs = 2;                       % Number of Targets
-% qualities = [0.5,0.5];          % Target qualities (q)
-% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+objs = 2;                       % Number of Targets
+qualities = [0.5,0.5];          % Target qualities (q)
+preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -50,9 +50,9 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
 %Setup 5
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -101,14 +101,11 @@ diffY = 2.125;
  
 %Function to initialise all robots
 robots = initBots(robots,objs,diffX,diffY); 
-% pain = load('pain.mat');
-% pain = pain.pain;
 
 % Allows for a sample robot position set to be loaded for specific tests
 % save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
-% robots = pain{1}; 
 %% Setting up the visualisation
  
 %Extracts the robot poses
@@ -135,10 +132,6 @@ for i = 1:objs
 end
  
 %% Running the algorithm
-% master = 500;
-% pain = load('pain.mat');
-% pain = pain.pain;
-% for h = 1:master
 
 runs = 50; %Total scenarios (robot position sets) to be tested
  
@@ -189,64 +182,64 @@ for i = 1:runs
     end
 end
 
-% %% Producing an example visualisation
-% %Example allocation chosen as last in set.
-% sample = A(end,:); 
-% poses = extPoses(robots);
-% 
-% %Draw the example robot positions.
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-% 
-% %Draws lines between each robot and its respective line to visually
-% %represent the example allocation.
-% for i = objs:numRobots
-%     line([robots{i}.pose(1),objects(sample(i),1)],...
-%          [robots{i}.pose(2),objects(sample(i),2)],...
-%          'color','black','LineWidth',1);
-% end
-%  
-% %% Bar chart comparing average allocation across all runs to desired allocation
-%  
-% %Counts the total number of robots allocated to each task, then normalises
-% %the results
-% tmp = histcounts(A,'Normalization','probability');
-% tmp = tmp*100;
-%  
-% %Finds the visual error between the bars (not necessarily equal to
-% %MAE)
-% visE = abs(tmp(1)-tmp(2))/2;
-%  
-% %X axis for the bar chart 
-% x = 1:length(tmp);
-%  
-% %Y axis for the bar chart
-% for i =1:length(tmp)
-%     y(i,1) = tmp(i);
-%     y(i,2) = 100*(qualities(i)/ sum(qualities));
-% end
-%  
-% % Showing the bar chart
-% figure(2);
-% 
-% tmp = bar(x,y,0.75);
-%  
-% %Sets the colour for the obtained distribution (cyan)
-% tmp(1).FaceColor = [0 1 1]; 
-%  
-% %Sets the colour for the obtained distribution (green)
-% tmp(2).FaceColor = [0 1 0]; 
-%  
-% %Sets up the legend labels for the bar chart
-% set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
-%  
-% %Axes labels for the bar chart
-% xlabel('Target');
-% ylabel('Number of robots (%)');
-% ylim([0 50]); %0.7 1, 0.4 2, 0.5 3
-%  
-% % Showing the legend for the bar chart
-% legend('Location','northwest')
+%% Producing an example visualisation
+%Example allocation chosen as last in set.
+sample = A(end,:); 
+poses = extPoses(robots);
+
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+
+%Draws lines between each robot and its respective line to visually
+%represent the example allocation.
+for i = objs:numRobots
+    line([robots{i}.pose(1),objects(sample(i),1)],...
+         [robots{i}.pose(2),objects(sample(i),2)],...
+         'color','black','LineWidth',1);
+end
+ 
+%% Bar chart comparing average allocation across all runs to desired allocation
+ 
+%Counts the total number of robots allocated to each task, then normalises
+%the results
+tmp = histcounts(A,'Normalization','probability');
+tmp = tmp*100;
+ 
+%Finds the visual error between the bars (not necessarily equal to
+%MAE)
+visE = abs(tmp(1)-tmp(2))/2;
+ 
+%X axis for the bar chart 
+x = 1:length(tmp);
+ 
+%Y axis for the bar chart
+for i =1:length(tmp)
+    y(i,1) = tmp(i);
+    y(i,2) = 100*(qualities(i)/ sum(qualities));
+end
+ 
+% Showing the bar chart
+figure(2);
+
+tmp = bar(x,y,0.75);
+ 
+%Sets the colour for the obtained distribution (cyan)
+tmp(1).FaceColor = [0 1 1]; 
+ 
+%Sets the colour for the obtained distribution (green)
+tmp(2).FaceColor = [0 1 0]; 
+ 
+%Sets up the legend labels for the bar chart
+set(tmp, {'DisplayName'}, {'Obtained','Expected'}');
+ 
+%Axes labels for the bar chart
+xlabel('Target');
+ylabel('Number of robots (%)');
+ylim([0 70]); %0.7 1, 0.4 2, 0.5 3
+ 
+% Showing the legend for the bar chart
+legend('Location','northwest')
  
 %% Calculation of results
  
@@ -254,24 +247,16 @@ end
 maxE = max(mae);
 avgE = mean(mae);
 
-% O(h,:) = [avgE,maxE];
-% if O(h,1) == 0.0343
-%     break;
-% else
-%     pain = {};
-% end
-% end
-%%
-%Displaying the average and maximum mae alongside total distance
-%Note that mae is shown in % and distance is shown in m.
-% disp('   AvgE(%)   MaxE(%)   Avg Dist');
-% disp([100*avgE 100*maxE (mean(dists))]);
-% 
-% O = zeros(runs,objs);
-% for i = 1:height(A)
-%     O(i,:) = histcounts(A(i,:));
-% %     O(i,:) = [avgE,maxE];
-% end
+% Displaying the average and maximum mae alongside total distance
+% Note that mae is shown in % and distance is shown in m.
+disp('   AvgE(%)   MaxE(%)   Avg Dist');
+disp([100*avgE 100*maxE (mean(dists))]);
+
+O = zeros(runs,objs);
+for i = 1:height(A)
+    O(i,:) = histcounts(A(i,:));
+%     O(i,:) = [avgE,maxE];
+end
 % disp('Average time per run (ms)');
 % times = 1000*times;
 % disp(mean(times));
@@ -283,4 +268,4 @@ avgE = mean(mae);
 % out = [floor(O),mae']; %,dists',times'];
 % out = [floor(A(1,:)),mae(1)',dists(1)'];
 
-writematrix([((objs / 2)*numRobots*mae'),dists',(1000*times')],'Test.csv');
+% writematrix([((objs / 2)*numRobots*mae'),dists',(1000*times')],'Test.csv');

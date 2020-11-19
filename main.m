@@ -11,10 +11,10 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 20; %Initialises the number of robots.
+numRobots = 60; %Initialises the number of robots.
  
 Coeff = 6; %Coefficient that controls total ABC iterations
-runs = 1; % Total runs of the algorithm
+runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -31,15 +31,15 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-objs = 2;                       % Number of Targets
-qualities = [0.5,0.5];          % Target qualities (q)
-preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+% objs = 2;                       % Number of Targets
+% qualities = [0.5,0.5];          % Target qualities (q)
+% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-% objs = 4;
-% qualities = 0.25*ones(1,4);
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+objs = 4;
+qualities = 0.25*ones(1,4);
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
 % objs = 4;
@@ -108,7 +108,7 @@ diffY = 2.125;
 robots = initBots(robots,objs,diffX,diffY); 
  
 % Allows for a sample robot position set to be loaded for specific tests
-save('robots.mat','robots'); 
+% save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
 %% Setting up the visualisation
@@ -182,6 +182,7 @@ Lower = repmat(lb, [FoodNumber 1]);
  
 %% Main Loop.
 for i = 1:runs
+    tic;
 % for i = 1:1
     %% ABC Algorithm
     % Input is robots
@@ -314,7 +315,7 @@ for i = 1:runs
         end
          
         %Record how the global max changes over each run
-        dists(iter) = GlobalMax;
+%         dists(iter) = GlobalMax;
         
         %% Scout Bee Phase
         
@@ -379,7 +380,7 @@ for i = 1:runs
     end
     
 %% End of Loop Recording
-%     times(i) = toc;
+    times(i) = toc;
     %Saves the overall maximum recording and parameters
     GlobalMaxes(i,:) = GlobalParams;
     FitMaxes(i) = GlobalMax;
@@ -510,4 +511,4 @@ end
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
-% writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');
+writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');

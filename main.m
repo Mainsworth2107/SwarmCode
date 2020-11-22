@@ -11,9 +11,9 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 60; %Initialises the number of robots.
- 
-Coeff = 6; %Coefficient that controls total ABC iterations
+numRobots = 200; %Initialises the number of robots.
+% 3 for 100
+Coeff = 3; %Coefficient that controls total ABC iterations
 runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
@@ -36,10 +36,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-objs = 4;
-qualities = 0.25*ones(1,4);
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% objs = 4;
+% qualities = 0.25*ones(1,4);
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
 % objs = 4;
@@ -53,9 +53,9 @@ preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %Setup 5
-% objs = 10;
-% qualities = 0.02*[1:1:5,5:1:9];
-% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -111,37 +111,40 @@ robots = initBots(robots,objs,diffX,diffY);
 % save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
+% pain = load('pain.mat');
+% pain = pain.pain;
+% robots = pain{1};
 %% Setting up the visualisation
 %This process is slow, so can be skipped to save on processing time with
 %larger problems.
  
 %Extracts the robot poses
-poses = extPoses(robots);
-env.Poses =  poses;
- 
-%Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
-env(1:numRobots, poses, objects);
- 
-%Draws the robot arena boundaries.
-line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
-line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
-line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
- 
-% Ensure that the visualisations axes remain fixed. 
-% Without this, axis resizing can slow things down
-xlim(limX);   
-ylim(limY);
- 
-axis equal 
-% Sets object labels
-for i = 1:objs
-    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-end
+% poses = extPoses(robots);
+% env.Poses =  poses;
+%  
+% %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
+% env(1:numRobots, poses, objects);
+%  
+% %Draws the robot arena boundaries.
+% line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
+% line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
+% line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+% line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+%  
+% % Ensure that the visualisations axes remain fixed. 
+% % Without this, axis resizing can slow things down
+% xlim(limX);   
+% ylim(limY);
+%  
+% axis equal 
+% % Sets object labels
+% for i = 1:objs
+%     text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+% end
  
  
 %% ABC Algorithm Setup
- 
+allFits = []; 
 FoodNumber = 10; %Number of potential solutions being improved. (fixed at 10)
  
 %A solution which could not be improved through "limit" 
@@ -179,9 +182,13 @@ maxRobs = {};
 %Used to enforce the bounds for the problem space
 Range = repmat((ub-lb),[FoodNumber 1]);
 Lower = repmat(lb, [FoodNumber 1]);
- 
+
+% pain = {};
+
 %% Main Loop.
 for i = 1:runs
+%     pain{i} = robots;
+%     robots = pain{i};
     tic;
 % for i = 1:1
     %% ABC Algorithm
@@ -193,16 +200,16 @@ for i = 1:runs
 %     Method 1: random
 %     Randomly initialises the possible solutions (A), accounting for problem
 %     bounds
-    Range = repmat((ub-lb),[FoodNumber 1]);
-    Lower = repmat(lb, [FoodNumber 1]);
-    A = (rand(FoodNumber,D) .* Range) + Lower;
+%     Range = repmat((ub-lb),[FoodNumber 1]);
+%     Lower = repmat(lb, [FoodNumber 1]);
+%     A = (rand(FoodNumber,D) .* Range) + Lower;
     
 
 %     Method 2: DBA
  
 %Uses the DBA algorithm to initialise better solutions to be run through ABC
 % %     tests = floor(3*FoodNumber ./ 4);
-%
+
 %     A = zeros(FoodNumber,numRobots);
 %     tests = FoodNumber - 1; %The number of potential solutions to be produced by DBA
 %     
@@ -221,13 +228,13 @@ for i = 1:runs
 %   %Method 3: Greedy
 %   Uses a greedy optimiser to produce high fitness initial solutions
  
-%     %Setup for pure greedy
-%     tests = 0;
-%     A = zeros(D,numRobots);
-%     %Setup end
-%     
-%     %Greedy optimisation is handeled by an external function
-%     A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
+%     Setup for pure greedy
+    tests = 0;
+    A = zeros(FoodNumber,D);
+    %Setup end
+    
+    %Greedy optimisation is handeled by an external function
+    A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
    
     %Uses rounding to ensure all possible solutions consist of whole numbers
     A = round(A); 
@@ -244,6 +251,9 @@ for i = 1:runs
     % Saves the fitness and parameters of the best individual for later analysis
     GlobalMax = fitness(BestInd);
     GlobalParams = A(BestInd,:);
+    sampleFits = [];
+    fitDiffs = [];
+    platCount = 0;
     
     %Resets trail array
     trial=zeros(1,FoodNumber); %reset trial counters
@@ -376,10 +386,25 @@ for i = 1:runs
  
         % Record all ten fitness values for plotting results.
         sampleFits(iter,:) = fitness;
+        if(iter > 1)
+            fitDiffs(iter-1,:) = sampleFits(iter,:) - sampleFits(iter-1,:);
+        end
+        
+        if(iter > 10)
+            if(length(find(fitDiffs(iter-1,:)==0)) >= 9)
+                platCount = platCount +1;
+            else
+                platCount = 0;
+            end
+            if(platCount >=8)
+                break;
+            end
+        end
         iter = iter + 1;
     end
     
 %% End of Loop Recording
+    cuts(i) = iter;
     times(i) = toc;
     %Saves the overall maximum recording and parameters
     GlobalMaxes(i,:) = GlobalParams;
@@ -402,14 +427,26 @@ for i = 1:runs
 %     figure(4)
 %     plot(sampleFits)
     disp(['Run: ',num2str(i),' of ',num2str(runs)]);
-    waitfor(0.01)
+%     hold on
+%     figure(3)
+%     plot(sampleFits)
+%     waitfor(0.01)
+%     allFits = [allFits,sampleFits];
 end
-%%    
+%%
+% histogram(allFits,50);
+% allFits = allFits(:);
+% allFits = allFits(find(allFits >=183.6));
+
+%%
 % Plots how the fitness for all 10 potential solutions evolved through the
 % % last run.
 figure(3)
 plot(sampleFits)
- 
+ylim([0,FitMaxes(end)*1.25])
+
+figure(4)
+plot(fitDiffs)
 %Absolute best run analysis
 % Extends the absolute best allocation set to include static robots for plotting.
 % sample = [1:objs,GlobalMaxes(end,:)];
@@ -507,8 +544,8 @@ end
 % %Note that mae is shown in % and distance is shown in m.
 % disp('   AvgE(%)   MaxE(%)   Avg Dist');
 % disp([100*avgE 100*maxE (mean(dists))]);
-% 
+%%
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
-writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');
+writematrix([((objs / 2)*numRobots*mae'),dists',FitMaxes',times'],'Test.csv');

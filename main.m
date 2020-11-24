@@ -11,7 +11,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 200; %Initialises the number of robots.
+numRobots = 40; %Initialises the number of robots.
 % 3 for 100
 Coeff = 3; %Coefficient that controls total ABC iterations
 runs = 50; % Total runs of the algorithm
@@ -36,10 +36,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-% objs = 4;
-% qualities = 0.25*ones(1,4);
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+objs = 4;
+qualities = 0.25*ones(1,4);
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
 % objs = 4;
@@ -53,9 +53,9 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %Setup 5
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -119,28 +119,28 @@ robots = initBots(robots,objs,diffX,diffY);
 %larger problems.
  
 %Extracts the robot poses
-% poses = extPoses(robots);
-% env.Poses =  poses;
-%  
-% %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
-% env(1:numRobots, poses, objects);
-%  
-% %Draws the robot arena boundaries.
-% line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
-% line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
-% line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-% line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-%  
-% % Ensure that the visualisations axes remain fixed. 
-% % Without this, axis resizing can slow things down
-% xlim(limX);   
-% ylim(limY);
-%  
-% axis equal 
-% % Sets object labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
+poses = extPoses(robots);
+env.Poses =  poses;
+ 
+%Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
+env(1:numRobots, poses, objects);
+ 
+%Draws the robot arena boundaries.
+line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
+line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
+line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+ 
+% Ensure that the visualisations axes remain fixed. 
+% Without this, axis resizing can slow things down
+xlim(limX);   
+ylim(limY);
+ 
+axis equal 
+% Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
  
  
 %% ABC Algorithm Setup

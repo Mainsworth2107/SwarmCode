@@ -11,7 +11,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 200; %Initialises the number of robots.
+numRobots =100; %Initialises the number of robots.
 
 %Coefficient that controls total ABC iterations
 if numRobots >= 100
@@ -20,7 +20,7 @@ else
     Coeff = 2; 
 end
 
-runs = 1; % Total runs of the algorithm
+runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -58,7 +58,7 @@ A = zeros(1,numRobots); %Calculated allocation
 % qualities = 0.1*ones(1,10);
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
-%Setup 5
+%Setup 5%
 objs = 10;
 qualities = 0.02*[1:1:5,5:1:9];
 preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
@@ -386,12 +386,12 @@ for i = 1:runs
         end
         
         if(iter > 10)
-            if(length(find(fitDiffs(iter-1,:)==0)) >= 9)
+            if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
                 platCount = platCount +1;
             else
                 platCount = 0;
             end
-            if(platCount >=12)
+            if(platCount >=8)
                 break;
             end
         end
@@ -543,4 +543,4 @@ end
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
-% writematrix([((objs / 2)*numRobots*mae'),dists',FitMaxes',times'],'Test.csv');
+writematrix([((objs / 2)*numRobots*mae'),dists',FitMaxes',times'],'Test.csv');

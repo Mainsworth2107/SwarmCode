@@ -11,9 +11,9 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 40; %Initialises the number of robots.
+numRobots = 60; %Initialises the number of robots.
 % 3 for 100
-Coeff = 3; %Coefficient that controls total ABC iterations
+Coeff = 2; %Coefficient that controls total ABC iterations
 runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
@@ -36,16 +36,16 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-objs = 4;
-qualities = 0.25*ones(1,4);
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
- 
-% Setup 3
 % objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
+% qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+ 
+% Setup 3
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 %Setup 4
 % objs = 10;
@@ -56,7 +56,7 @@ preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % objs = 10;
 % qualities = 0.02*[1:1:5,5:1:9];
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
- 
+%  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
 colours = objects; %Sets the colour of each object
@@ -111,6 +111,8 @@ robots = initBots(robots,objs,diffX,diffY);
 % save('robots.mat','robots'); 
 % robots = load('robots.mat');
 % robots = robots.robots;
+
+
 % pain = load('pain.mat');
 % pain = pain.pain;
 % robots = pain{1};
@@ -208,8 +210,8 @@ for i = 1:runs
 %     Method 2: DBA
  
 %Uses the DBA algorithm to initialise better solutions to be run through ABC
-% %     tests = floor(3*FoodNumber ./ 4);
-
+%     tests = floor(FoodNumber ./ 2);
+% 
 %     A = zeros(FoodNumber,numRobots);
 %     tests = FoodNumber - 1; %The number of potential solutions to be produced by DBA
 %     
@@ -231,7 +233,7 @@ for i = 1:runs
 %     Setup for pure greedy
     tests = 0;
     A = zeros(FoodNumber,D);
-    %Setup end
+%     %Setup end
     
     %Greedy optimisation is handeled by an external function
     A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
@@ -333,8 +335,8 @@ for i = 1:runs
         toChange=find(trial==max(trial));
         toChange=toChange(end);
         
-%         Glim = 5;
         Glim = -1;
+%         Glim = -1;
         % Global pullup removal (unused atm)
         if(iter == Glim)
             toChange = ind;
@@ -360,19 +362,6 @@ for i = 1:runs
             sol = round(sol);
             
             
-            %Mutation based on the idea of non random scouted solutions
-%             sol = A(toChange,:);            
-%            mutation = 0.5;
-%            for j=1:length(sol)
-%                if(rand < mutation)
-%                    sol(j) = sol(j) + round( (2*rand*(objs-1)) ); %- 1
-%                    sol(j) = mod(sol(j),objs);
-%                    if(sol(j) == 0)
-%                        sol(j) = sol(j) + objs;
-%                    end
-%                end
-%            end
-            
             % Updates the fitness values to include the new solution
             FitnessSol=beeFit(1,sol,robots,qualities,0);
             
@@ -391,7 +380,7 @@ for i = 1:runs
         end
         
         if(iter > 10)
-            if(length(find(fitDiffs(iter-1,:)==0)) >= 9)
+            if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
                 platCount = platCount +1;
             else
                 platCount = 0;

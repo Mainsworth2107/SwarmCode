@@ -1,6 +1,6 @@
 %% Function that manages the greedy allocation of a given number of solutions
 
-function [A] =  Greedy(start,foodNumber,numRobots,robots,qualities)   
+function [A] =  greedy(start,foodNumber,numRobots,robots,qualities)   
     global allObjs;
     objects = allObjs;
     objs = height(allObjs);

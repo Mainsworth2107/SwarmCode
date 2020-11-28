@@ -242,7 +242,7 @@ for i = 1:runs
 %     %Setup end
     
     %Greedy optimisation is handeled by an external function
-    A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
+    A(tests+1:end,:) = greedy(tests,10,numRobots,robots,qualities);
    
     %Uses rounding to ensure all possible solutions consist of whole numbers
     A = round(A); 

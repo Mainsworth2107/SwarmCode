@@ -11,10 +11,10 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 200; %Initialises the number of robots.
 
 %Coefficient that controls total ABC iterations
-if numRobots >= 100
+if numRobots > 100
     Coeff = 3; 
 else
     Coeff = 2; 
@@ -48,21 +48,23 @@ A = zeros(1,numRobots); %Calculated allocation
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 %Setup 4
 % objs = 10;
 % qualities = 0.1*ones(1,10);
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
- 
-%Setup 5
-% objs = 10;
-% qualities = 0.02*[1:1:5,5:1:9];
+ objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
-%
+%Setup 5
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+%  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
 colours = objects; %Sets the colour of each object
@@ -461,12 +463,12 @@ env(1:numRobots, poses, objects);
 xlim(limX);   % Without this, axis resizing can slow things down
 ylim(limY);  
  
-%  % %Sets object labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
-
-% figure(1)
+%Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
+ 
+figure(1)
 % sample = [1:objs,GlobalParams];
 % sample = [1,2,opt];
 % sample = A(ceil(rand*height(A)),:);

@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that manages the greedy allocation of a given number of solutions
 
 function [A] =  Greedy(start,foodNumber,numRobots,robots,qualities)   

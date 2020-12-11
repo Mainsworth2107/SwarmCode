@@ -1,4 +1,4 @@
-%% ABC+ Solution Shifting
+%% RDABC Solution Shifting
  
 function sol = beeNew(A,i,neighbour)
     test = A(i,:);

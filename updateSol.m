@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that handles comparing a mutant and original solution.
 
 function [fitness,trial] = updateSol(sol,fitness,trial,robots,qualities)

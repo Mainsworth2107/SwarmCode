@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that returns the fitness of a given allocation
  
 function X = beeFit(FoodNumber,A,robots,qualities,mode)

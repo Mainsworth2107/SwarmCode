@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function which randomly initialises the positions of the robots.
  
 function X = initBots(robots,objs,diffX,diffY)

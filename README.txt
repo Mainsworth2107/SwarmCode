@@ -1,5 +1,7 @@
 README for DBA code
 
+All refernces are given in main.m
+
 DBA Algorithm (Andina et al): Implementation and verification of DBA Algorithm
 
 FLIES:

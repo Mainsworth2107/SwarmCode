@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that returns the poses of all robots in the environment
  
 function X = extPoses(A)

@@ -1,3 +1,7 @@
+%% Refernces
+%All refernces given in main.m
+%
+
 %% A function to calculate the Euclidian distance between any two ND points
  
 function [X] = distEu (A,B)

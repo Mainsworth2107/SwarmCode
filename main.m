@@ -1,17 +1,57 @@
 %% Acknowledgements
 %
+%% Gerneral Refernces
 % Artificial Bee Colony algorithm
-% Based on Materials Found at: https://abc.erciyes.edu.tr/
+% Based on Materials Found at: https://abc.erciyes.edu.tr/ (MATLAB Code of the ABC algorithm version 2 )
+%
+% Orignal authors: 
+% Dervis Karaboga (karaboga@erciyes.edu.tr )
+% Bahriye Basturk Akay (bahriye@erciyes.edu.tr)
+%
+% Reference Papers as given by original authors:
+
+%D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.*/
+
+%D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x */
+
+%D. Karaboga, B. Basturk, On The Performance Of Artificial Bee Colony (ABC) Algorithm, Applied Soft Computing,Volume 8, Issue 1, January 2008, Pages 687-697. */
+
+%D. Karaboga, B. Akay, A Comparative Study of Artificial Bee Colony Algorithm,  Applied Mathematics and Computation, 214, 108-132, 2009. */
+
 % Uses The Mobile Robotics Simulation Toolbox (MRST) from: The MathWorks, Inc.
 % Note: A small modification was made to the MRST code to draw the objects
-% in the environment as slightly larger than the default size.
+% in the environment as slightly larger than the default size.%
+%
+%% RDABC Modifications
+%
+% Swapping and mutation, used in beeNew were based on the works of both:
+%
+% Deng et al: An Enhanced Discrete Artificial Bee Colony Algorithm to Minimize the Total Flow Time 
+% in Permutation Flow Shop Scheduling with Limited Buffers
+% found at:https://www.hindawi.com/journals/mpe/2016/7373617/
+% and
+% Badreldin: A Comparative Study between Optimization and Market-Based Approaches to Multi-Robot Task Allocation 
+% found at: https://www.hindawi.com/journals/aai/2013/256524/
+%
+%
+% The fitness function in beeFit.m is derived from the work of Jevtic et
+% al: "Distributed Bees Algorithm Parameters Optimization for a Cost Efficient Target Allocation in Swarms of Robots"  
+% found at:https://www.researchgate.net/publication/221676792_Distributed_Bees_Algorithm_Parameters_Optimization_for_a_Cost_Efficient_Target_Allocation_in_Swarms_of_Robots
+%(page 6)
+%
+% The rSol method used for searching in shiftSol is based on the work of
+% Sun et al : "An Artificial Bee Colony Algorithm with Random Location Updating"
+% found at:https://www.hindawi.com/journals/sp/2018/2767546/
+% 
+%
+%%
  
 %N represents the number of robots (in comments)
 %M represents the number of objects (in comments)
  
 %% Create a multi-robot environment
 flush
-numRobots =100; %Initialises the number of robots.
+numRobots = 60; %Initialises the number of robots.
 
 %Coefficient that controls total ABC iterations
 if numRobots >= 100
@@ -20,7 +60,7 @@ else
     Coeff = 2; 
 end
 
-runs = 50; % Total runs of the algorithm
+runs = 1; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -42,10 +82,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-% objs = 4;
-% qualities = 0.25*ones(1,4);
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+objs = 4;
+qualities = 0.25*ones(1,4);
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
 % objs = 4;
@@ -58,10 +98,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % qualities = 0.1*ones(1,10);
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
-%Setup 5%
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+%Setup 5
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 %
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -242,7 +282,7 @@ for i = 1:runs
 %     %Setup end
     
     %Greedy optimisation is handeled by an external function
-    A(tests+1:end,:) = greedy(tests,10,numRobots,robots,qualities);
+    A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
    
     %Uses rounding to ensure all possible solutions consist of whole numbers
     A = round(A); 
@@ -543,4 +583,4 @@ end
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
-writematrix([((objs / 2)*numRobots*mae'),dists',FitMaxes',times'],'Test.csv');
+% writematrix([((objs / 2)*numRobots*mae'),dists',FitMaxes',times'],'Test.csv');

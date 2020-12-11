@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Class that stores the poses of each robot
  
 classdef robot < handle

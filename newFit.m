@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that calculates the allocation of a robot.
  
 function [X,Y] = newFit(poseIn)

@@ -1,10 +1,45 @@
+%% %%%%%%%%%%%%DABC CODE%%%%%%%%%%%% %%
+
 %% Acknowledgements
 %
+%% Gerneral Refernces
 % Artificial Bee Colony algorithm
-% Based on Materials Found at: https://abc.erciyes.edu.tr/
+% Based on Materials Found at: https://abc.erciyes.edu.tr/ (MATLAB Code of the ABC algorithm version 2 )
+%
+% Orignal authors: 
+% Dervis Karaboga (karaboga@erciyes.edu.tr )
+% Bahriye Basturk Akay (bahriye@erciyes.edu.tr)
+%
+% Reference Papers as given by original authors:
+
+%D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.*/
+
+%D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x */
+
+%D. Karaboga, B. Basturk, On The Performance Of Artificial Bee Colony (ABC) Algorithm, Applied Soft Computing,Volume 8, Issue 1, January 2008, Pages 687-697. */
+
+%D. Karaboga, B. Akay, A Comparative Study of Artificial Bee Colony Algorithm,  Applied Mathematics and Computation, 214, 108-132, 2009. */
+
 % Uses The Mobile Robotics Simulation Toolbox (MRST) from: The MathWorks, Inc.
 % Note: A small modification was made to the MRST code to draw the objects
-% in the environment as slightly larger than the default size.
+% in the environment as slightly larger than the default size.%
+%
+%% RDABC Modifications
+%
+% Swapping and mutation, used in beeNew were based on the works of both:
+%
+% Deng et al: An Enhanced Discrete Artificial Bee Colony Algorithm to Minimize the Total Flow Time 
+% in Permutation Flow Shop Scheduling with Limited Buffers
+% found at:https://www.hindawi.com/journals/mpe/2016/7373617/
+% and
+% Badreldin: A Comparative Study between Optimization and Market-Based Approaches to Multi-Robot Task Allocation 
+% found at: https://www.hindawi.com/journals/aai/2013/256524/
+%
+%
+% The fitness function in beeFit.m is derived from the work of Jevtic et
+% al: "Distributed Bees Algorithm Parameters Optimization for a Cost Efficient Target Allocation in Swarms of Robots"  
+% found at:https://www.researchgate.net/publication/221676792_Distributed_Bees_Algorithm_Parameters_Optimization_for_a_Cost_Efficient_Target_Allocation_in_Swarms_of_Robots
+%(page 6)
  
 %N represents the number of robots (in comments)
 %M represents the number of objects (in comments)

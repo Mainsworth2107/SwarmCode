@@ -8,16 +8,6 @@ function sol = beeShift(A,i,neighbour)
     %Selects a random element of the solution to be altered
     idxs = floor(rand(1,1)*length(A(i,:)))+1;
     
-    %Method for changing two variables at random
-%     cut = 0;
-%     while(idxs(1) == idxs(2))
-%        idxs(2) = floor(rand*length(A(i,:)))+1;
-%        cut = cut + 1;
-%        %Statement for safety only
-%        if(cut > 100)
-%            break;
-%        end
-%     end
     
     % Determines the magnitude change of the variable by looking at the neighbouring
     % solution as in continuous ABC.

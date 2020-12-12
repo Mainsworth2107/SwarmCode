@@ -1,3 +1,6 @@
+%% Refernces
+%All refernces given in main.m
+%
 %% Function that manages parameter changes for potential solutions
  
 function [sol] = shiftSol(A,FoodNumber,i)

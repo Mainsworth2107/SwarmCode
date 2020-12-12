@@ -1,3 +1,5 @@
+All refernces are given in main.m
+
 README for DBA code
 
 DBA Algorithm (Andina et al): Implementation and verification of DBA Algorithm

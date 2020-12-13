@@ -46,10 +46,10 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 60; %Initialises the number of robots.
+numRobots = 200; %Initialises the number of robots.
  
-Coeff = 4; %Coefficient that controls total ABC iterations
-runs = 50; % Total runs of the algorithm
+Coeff = 3; %Coefficient that controls total ABC iterations
+runs = 1; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -66,9 +66,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-objs = 2;                       % Number of Targets
-qualities = [0.5,0.5];          % Target qualities (q)
-preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+% objs = 2;                       % Number of Targets
+% qualities = [0.5,0.5];          % Target qualities (q)
+% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -87,10 +87,10 @@ preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
 % qualities = 0.1*ones(1,10);
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
-%Setup 5
-% objs = 10;
-% qualities = 0.02*[1:1:5,5:1:9];
-% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+% %Setup 5
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -388,13 +388,13 @@ sample = [1:objs,GlobalMaxes(end,:)];
  
 %% Producing an example visualisation
 % %Initialising main environment visualisation
-% figure(1)
-% poses = extPoses(robots);
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-% xlim(limX);   % Without this, axis resizing can slow things down
-% ylim(limY);  
-%  
+figure(1)
+poses = extPoses(robots);
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+xlim(limX);   % Without this, axis resizing can slow things down
+ylim(limY);  
+ 
 % %Sets object labels
 % for i = 1:objs
 %     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
@@ -405,21 +405,21 @@ sample = [1:objs,GlobalMaxes(end,:)];
 % % sample = [1,2,opt];
 % % sample = A(ceil(rand*height(A)),:);
 %  
-% % Extracts the robot pose set
-% poses = extPoses(robots);
-%  
-% %Draw the example robot positions.
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-%  
-% %Draws lines between each robot and its respective line to visually
-% %represent the example allocation.
-% for i = objs:numRobots
-%     line([robots{i}.pose(1),objects(sample(i),1)],...
-%          [robots{i}.pose(2),objects(sample(i),2)],...
-%          'color','black','LineWidth',1);
-% end
-%  
+% Extracts the robot pose set
+poses = extPoses(robots);
+ 
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+ 
+%Draws lines between each robot and its respective line to visually
+%represent the example allocation.
+for i = objs:numRobots
+    line([robots{i}.pose(1),objects(sample(i),1)],...
+         [robots{i}.pose(2),objects(sample(i),2)],...
+         'color','black','LineWidth',1);
+end
+ 
 % %% Bar chart comparing average allocation across all runs to desired allocation
 %  
 % %Counts the total number of robots allocated to each task, then normalises

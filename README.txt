@@ -1,4 +1,4 @@
-README for RDBA code
+README for RDABC code
 
 Full refernces are given in main.m
 

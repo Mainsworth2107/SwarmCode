@@ -51,7 +51,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 200; %Initialises the number of robots.
 
 %Coefficient that controls total ABC iterations
 if numRobots >= 100
@@ -87,11 +87,11 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
-% Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% % Setup 3
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 %Setup 4
 % objs = 10;
@@ -99,9 +99,9 @@ preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
  
 %Setup 5
-% objs = 10;
-% qualities = 0.02*[1:1:5,5:1:9];
-% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+objs = 10;
+qualities = 0.02*[1:1:5,5:1:9];
+preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 %
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
@@ -251,7 +251,7 @@ for i = 1:runs
 %     Range = repmat((ub-lb),[FoodNumber 1]);
 %     Lower = repmat(lb, [FoodNumber 1]);
 %     A = (rand(FoodNumber,D) .* Range) + Lower;
-    
+%     
 
 %     Method 2: DBA
  
@@ -279,9 +279,9 @@ for i = 1:runs
 %     Setup for pure greedy
     tests = 0;
     A = zeros(FoodNumber,D);
-%     %Setup end
-    
-    %Greedy optimisation is handeled by an external function
+    %Setup end
+  
+%     Greedy optimisation is handeled by an external function
     A(tests+1:end,:) = Greedy(tests,10,numRobots,robots,qualities);
    
     %Uses rounding to ensure all possible solutions consist of whole numbers
@@ -425,16 +425,16 @@ for i = 1:runs
             fitDiffs(iter-1,:) = sampleFits(iter,:) - sampleFits(iter-1,:);
         end
         
-%         if(iter > 10)
-%             if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
-%                 platCount = platCount +1;
-%             else
-%                 platCount = 0;
-%             end
-%             if(platCount >=8)
-%                 break;
-%             end
-%         end
+        if(iter > 10)
+            if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
+                platCount = platCount +1;
+            else
+                platCount = 0;
+            end
+            if(platCount >=8)
+                break;
+            end
+        end
         iter = iter + 1;
     end
     

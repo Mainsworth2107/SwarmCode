@@ -47,9 +47,13 @@
 %% Create a multi-robot environment
 flush
 numRobots = 200; %Initialises the number of robots.
- 
-Coeff = 3; %Coefficient that controls total ABC iterations
-runs = 1; % Total runs of the algorithm
+
+if(numRobots <100)
+    Coeff =2; %Coefficient that controls total ABC iterations
+else
+    Coeff = 3; %Coefficient that controls total ABC iterations
+end
+runs = 50; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -77,10 +81,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-% objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
 
 %Setup 4
 % objs = 10;
@@ -88,10 +92,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
 
 % %Setup 5
-objs = 10;
-qualities = 0.02*[1:1:5,5:1:9];
-preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
- 
+% objs = 10;
+% qualities = 0.02*[1:1:5,5:1:9];
+% preset = [[4.5*ones(5,1);-4.5*ones(5,1)],[repmat([-7.5:(15/4):7.5]',2,1)]];
+%  
 %% Adding Objects to environment
 objects = zeros(objs,3); %Stores the coordinates of each object
 colours = objects; %Sets the colour of each object

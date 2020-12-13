@@ -1,8 +1,8 @@
 README for DBA code
 
-All refernces are given in main.m
+DBA Algorithm is inspired by the works of (Jevtic et al)
 
-DBA Algorithm (Jevtić et al): Implementation and verification of DBA Algorithm
+Fully detiled refernces are given in main.m
 
 FILES:
 
@@ -20,5 +20,5 @@ initBots.m Initialises a random robot placement to mimic a single allocation sit
  
 main.m main code run for simulation. Calls all other functions in its process.
 
-robot.m Class file for each robot that contains the FSM code used for iterative running.
+robot.m Class file for each robot
 

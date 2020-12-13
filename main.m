@@ -46,14 +46,14 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 200; %Initialises the number of robots.
+numRobots = 100; %Initialises the number of robots.
 
 if(numRobots <100)
     Coeff =2; %Coefficient that controls total ABC iterations
 else
     Coeff = 3; %Coefficient that controls total ABC iterations
 end
-runs = 50; % Total runs of the algorithm
+runs = 1; % Total runs of the algorithm
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Hides robot path information
@@ -480,4 +480,4 @@ end
 % Writing results to csv for validation
 % out = [GlobalMaxes,mae',allDists'];
 % %% Writing results to csv for validation   1000*
-writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');
+% writematrix([((objs / 2)*numRobots*mae'),dists',(times')],'Test.csv');

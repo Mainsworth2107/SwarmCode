@@ -381,7 +381,15 @@ end
 % Plots how the fitness for all 10 potential solutions evolved through the
 % % last run.
 % figure(3)
-% plot(sampleFits)
+if(iter <= maxCycle)
+    plot(sampleFits(1:iter,:))
+else
+    plot(sampleFits)
+end
+
+xlabel('Iterations')
+ylabel('Fitness')
+ylim([0,FitMaxes(end)*1.25])
  
 % Extends the final allocation set to include static robots for plotting.
 sample = [1:objs,GlobalMaxes(end,:)];

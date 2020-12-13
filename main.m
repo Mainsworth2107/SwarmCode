@@ -1,12 +1,9 @@
-%% Distributed Bees Algorithm
-% Written by Matthew Ainsworth
-% Last modified: 12/11/2020
-
 %% Acknowledgements
  
 % Based on: Distributed Bees Algorithm for Task Allocation in Swarm of Robots
 % Jevtić et al, 2012
- 
+% found at: https://www.researchgate.net/publication/222714389_Distributed_Bees_Algorithm_for_Task_Allocation_in_Swarm_of_Robots
+%
 % Uses The Mobile Robotics Simulation Toolbox (MRST) from: The MathWorks, Inc.
 % Note: A small modification was made to the MRST code to draw the objects
 % in the environment as slightly larger than the default size.

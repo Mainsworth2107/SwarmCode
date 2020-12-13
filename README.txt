@@ -1,12 +1,12 @@
-README for DBA code
+README for RDBA code
 
-All refernces are given in main.m
-
-DBA Algorithm (Andina et al): Implementation and verification of DBA Algorithm
+Full refernces are given in main.m
 
 FLIES:
 
-distEU: Calculates the euclidian distance between any equal sized point sets (A) and (B).
+distEU Calculates the euclidian distance between any equal sized point sets (A) and (B).
+
+beeNew.m Function that applies swapping and mutation to  randomly selected current solutions to produce new potential solutions
 
 extPoses.m Extracts the pose information from each robot to allow for the environment object to plot them.
 
@@ -21,4 +21,9 @@ main.m main code run for simulation. Calls all other functions in its process.
 newfit.m: Uses the method described in Andina et al to produce an allocation for each robot in the swarm.
 
 robot.m Class file for each robot that contains the FSM code used for iterative running.
+
+shiftSol.m Handles the overall solution shifting behaviour in both the employed and onlooker bees phases
+
+updateSol.m Applies the greedy selection method as outlined by Karaboga to choose between the current and
+	potential solution
 

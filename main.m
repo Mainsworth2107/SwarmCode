@@ -51,7 +51,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 60; %Initialises the number of robots.
+numRobots = 100; %Initialises the number of robots.
 
 %Coefficient that controls total ABC iterations
 if numRobots >= 100
@@ -82,16 +82,16 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-objs = 4;
-qualities = 0.25*ones(1,4);
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
- 
-% Setup 3
 % objs = 4;
-% qualities = [0.1,0.2,0.3,0.4];
+% qualities = 0.25*ones(1,4);
 % preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+ 
+% Setup 3
+objs = 4;
+qualities = [0.1,0.2,0.3,0.4];
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 %Setup 4
 % objs = 10;
@@ -425,16 +425,16 @@ for i = 1:runs
             fitDiffs(iter-1,:) = sampleFits(iter,:) - sampleFits(iter-1,:);
         end
         
-        if(iter > 10)
-            if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
-                platCount = platCount +1;
-            else
-                platCount = 0;
-            end
-            if(platCount >=8)
-                break;
-            end
-        end
+%         if(iter > 10)
+%             if(length(find(fitDiffs(iter-1,:)==0)) >= 8)
+%                 platCount = platCount +1;
+%             else
+%                 platCount = 0;
+%             end
+%             if(platCount >=8)
+%                 break;
+%             end
+%         end
         iter = iter + 1;
     end
     
@@ -477,7 +477,14 @@ end
 % Plots how the fitness for all 10 potential solutions evolved through the
 % % last run.
 figure(3)
-plot(sampleFits)
+if(iter <= maxCycle)
+    plot(sampleFits(1:iter,:))
+else
+    plot(sampleFits)
+end
+
+xlabel('Iterations')
+ylabel('Fitness')
 ylim([0,FitMaxes(end)*1.25])
 
 figure(4)

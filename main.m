@@ -46,7 +46,7 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 100; %Initialises the number of robots.
+numRobots = 20; %Initialises the number of robots.
 
 if(numRobots <100)
     Coeff =2; %Coefficient that controls total ABC iterations
@@ -70,9 +70,9 @@ A = zeros(1,numRobots); %Calculated allocation
 %% Selecting testing scenario
  
 % Setup 1
-% objs = 2;                       % Number of Targets
-% qualities = [0.5,0.5];          % Target qualities (q)
-% preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
+objs = 2;                       % Number of Targets
+qualities = [0.5,0.5];          % Target qualities (q)
+preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
 % objs = 4;
@@ -81,10 +81,10 @@ A = zeros(1,numRobots); %Calculated allocation
 % % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
-% preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% % preset = [7.5,-4.5,;-7.5,4.5;-7.5,-4.5;7.5,4.5];
 
 %Setup 4
 % objs = 10;
@@ -380,7 +380,7 @@ end
 %%    
 % Plots how the fitness for all 10 potential solutions evolved through the
 % % last run.
-% figure(3)
+figure(3)
 if(iter <= maxCycle)
     plot(sampleFits(1:iter,:))
 else
@@ -398,8 +398,13 @@ sample = [1:objs,GlobalMaxes(end,:)];
 % sample = [1:objs,GlobalMaxes(maxGMax,:)]; 
 % robots = maxRobs;
  
+%Last run analysis
+% Extends the final allocation set to include static robots for plotting.
+sample = [1:objs,GlobalParams];
+ 
+ 
 %% Producing an example visualisation
-% %Initialising main environment visualisation
+%Initialising main environment visualisation
 figure(1)
 poses = extPoses(robots);
 env.Poses =  poses;
@@ -407,16 +412,16 @@ env(1:numRobots, poses, objects);
 xlim(limX);   % Without this, axis resizing can slow things down
 ylim(limY);  
  
-% %Sets object labels
+%  % %Sets object labels
 % for i = 1:objs
 %     text(objects(i,1) - 0.05,objects(i,2) - 0.3,num2str(i),'Color',[0,0,0],'FontWeight','bold');
 % end
-%  
+
 % figure(1)
-% % sample = [1:objs,GlobalParams];
-% % sample = [1,2,opt];
-% % sample = A(ceil(rand*height(A)),:);
-%  
+% sample = [1:objs,GlobalParams];
+% sample = [1,2,opt];
+% sample = A(ceil(rand*height(A)),:);
+ 
 % Extracts the robot pose set
 poses = extPoses(robots);
  

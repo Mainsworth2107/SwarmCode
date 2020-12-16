@@ -13,7 +13,9 @@
  
 %% Create a multi-robot environment
 flush
-numRobots = 40; %Initialises the number of robots.
+numRobots = 20; %Initialises the number of robots.
+
+runs = 1; %Total scenarios (robot position sets) to be tested
  
 env = MultiRobotEnv(numRobots); %Initialises robot envrionment (MRST)
 env.showTrajectory = false; %Disables robot pathing 
@@ -32,14 +34,14 @@ A = zeros(1,numRobots); %Calculated allocation
 % preset = [-4.5,7.5; 4.5,-7.5];  % Object positions
  
 % Setup 2
-% objs = 4;
-% qualities = 0.25*ones(1,4);
-% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+objs = 4;
+qualities = 0.25*ones(1,4);
+preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
  
 % Setup 3
-objs = 4;
-qualities = [0.1,0.2,0.3,0.4];
-preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
+% objs = 4;
+% qualities = [0.1,0.2,0.3,0.4];
+% preset = [-4.5,7.5; 4.5,-7.5;-4.5,-7.5; 4.5,7.5];
 
 %Setup 4
 % objs = 10;
@@ -105,33 +107,31 @@ robots = initBots(robots,objs,diffX,diffY);
 % robots = robots.robots;
 
 % %% Setting up the visualisation
-%  
-% %Extracts the robot poses
-% poses = extPoses(robots);
-% env.Poses =  poses;
-%  
-% %Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
-% env(1:numRobots, poses, objects);
-%  
-% line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
-% line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
-% line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-% line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
-% 
-% % Ensure that the visualisations axes remain fixed. 
-% % Without this, axis resizing can slow things down
-% xlim(limX);   
-% ylim(limY);
-% 
-% axis equal 
-% % Sets object labels
-% for i = 1:objs
-%     text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
-% end
+ 
+%Extracts the robot poses
+poses = extPoses(robots);
+env.Poses =  poses;
+ 
+%Draws the multi robot environment (this is an expensive operation, so not ran in loop). 
+env(1:numRobots, poses, objects);
+ 
+line([diffX*0.5,diffX*-0.5],[diffY*0.5,diffY*0.5],'color','black','LineWidth',1); 
+line([diffX*0.5,diffX*-0.5],[diffY*-0.5,diffY*-0.5],'color','black','LineWidth',1);
+line([diffX*0.5,diffX*0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+line([diffX*-0.5,diffX*-0.5],[diffY*0.5,diffY*-0.5],'color','black','LineWidth',1); 
+
+% Ensure that the visualisations axes remain fixed. 
+% Without this, axis resizing can slow things down
+xlim(limX);   
+ylim(limY);
+
+axis equal 
+% Sets object labels
+for i = 1:objs
+    text(objects(i,1) - 0.005,objects(i,2) - 0.1,num2str(i),'Color',[0,0,0],'FontWeight','bold');
+end
  
 %% Running the algorithm
-
-runs = 50; %Total scenarios (robot position sets) to be tested
  
 %Initialises output variables
 mae = zeros(1,runs); % Mean absolute error.
@@ -182,20 +182,20 @@ end
 
 %% Producing an example visualisation
 %Example allocation chosen as last in set.
-% sample = A(end,:); 
-% poses = extPoses(robots);
-% 
-% %Draw the example robot positions.
-% env.Poses =  poses;
-% env(1:numRobots, poses, objects);
-% 
-% %Draws lines between each robot and its respective line to visually
-% %represent the example allocation.
-% for i = objs:numRobots
-%     line([robots{i}.pose(1),objects(sample(i),1)],...
-%          [robots{i}.pose(2),objects(sample(i),2)],...
-%          'color','black','LineWidth',1);
-% end
+sample = A(end,:); 
+poses = extPoses(robots);
+
+%Draw the example robot positions.
+env.Poses =  poses;
+env(1:numRobots, poses, objects);
+
+%Draws lines between each robot and its respective line to visually
+%represent the example allocation.
+for i = objs:numRobots
+    line([robots{i}.pose(1),objects(sample(i),1)],...
+         [robots{i}.pose(2),objects(sample(i),2)],...
+         'color','black','LineWidth',1);
+end
  
 %% Bar chart comparing average allocation across all runs to desired allocation
  
@@ -266,4 +266,4 @@ end
 % out = [floor(O),mae']; %,dists',times'];
 % out = [floor(A(1,:)),mae(1)',dists(1)'];
 
-writematrix([mae',dists',(1000*times')],'Test.csv');
+% writematrix([mae',dists',(1000*times')],'Test.csv');
